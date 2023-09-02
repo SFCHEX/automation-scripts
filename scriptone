@@ -1,0 +1,85 @@
+
+import pandas as pd
+import argparse
+from fuzzywuzzy import fuzz
+
+desired_header_order = [Date, Region, BSC, Site Name, Site ID, 2G3G, ID,Site Category,Priority,Technical Area,Site Layer - Qism,Type Of Sharing,HostGuest,Alarm Occurance Time,Fault Occurance Time,Fault Clearance Time,MTTR,Hybrid Down Time,SLA Status,Site Type, Reason Category,Reason Sub-Category,Comment, Owner,Access Type]
+
+original_headers= {Reason Category[BSS, High_temp, other, power, TX,car,car_bmw,],
+
+                       Reason Sub-Category['BSS_HW','BSS_SW','High_Temp','High_Temp_Dependency','Others_Illegal_Intervention','Others_ROT','Others_Dependency_Illegal Intervention','Others_Unknown Reason','Others_Dependency_Unknown Reason','Others_Wrong_Action','Power_Commercial','Power_Dependency_Commercial','Power_Generator','Power_Dependency_Generator','Power_HW (Cct Breakers, Cables)','Power_Dependency_HW (Cct Breakers, Cables)','Power_Power Criteria','Power_Dependency_Power Criteria','Power_Solar Cell','Power_Dependency_Solar Cell','TX_Bad Performance','TX_Dependency_Bad Performance','TX_HW Failure','TX_Dependency_HW Failure','TX_LOS','TX_Dependency_LOS','TX_Physical Connection','TX_Dependency_Physical Connection','TX_Power Supply','TX_Dependency_Power Supply','TX_SW','','TX_Telecom Egypt','TX_Dependency_Telecom Egypt','BSSLicense',],
+
+                       Owner[BSS,FM,GD,ROT,RT,TD,TX,E,ZTE,],
+                       SLA Status[Unplanned within SLA,Unplanned Violated SLA,Planned within agreed time,Planned Violated agreed time,],
+                       Access Type['Access_Guard Fee''Access_Dependency_Guard Fee','Access_Guard Others','Access_Dependency_Guard Others','Access_Owner Fee','Access_Dependency_Owner Fee','Access_Owner Others','Access_Dependency_Owner Others','Access_Permission','Access_Dependency_Permission','Access_Health&Safety','Access_Dependency_Health&Safety','Access_Road','Access_Dependency _Road','Access_ Portabal Generator','Damaged_Burnt','Damaged_Stolen',]
+                       }
+
+def merge_categories(original_categories, new_categories)
+    category_mapping = {}
+
+    for new_category in new_categories
+        matched_category = None
+        max_similarity = 0
+
+        for original_category in original_categories
+            if pd.isna(new_category) or new_category==0
+                new_category=;
+
+            similarity = fuzz.ratio(new_category.lower(), original_category.lower())
+
+            if similarity  max_similarity
+                max_similarity = similarity
+                matched_category = original_category
+
+        if matched_category
+            if new_category.lower() != matched_category.lower()
+                category_mapping[new_category] = matched_category
+            elif new_category not in category_mapping.values()
+                category_mapping[new_category] = new_category
+    category_mapping = {key value for key, value in category_mapping.items() if key != value}
+
+    return category_mapping
+
+# Example usage
+
+
+
+
+def process_excel_files(input_files, output_file)
+    combined_data = pd.DataFrame(columns=desired_header_order)  
+    for input_file in input_files
+        data = pd.read_excel(input_file)
+        for header in desired_header_order
+            if header not in data.columns
+                data[header]=None
+
+
+
+        data[Site ID] = data[SiteCode]
+        data[2G3G] = data[Tech]
+        data[Site Layer - Qism] = data[Site Layer Qism]
+        data[Hybrid Down Time] = data[Down Time]
+       
+
+        data = data[desired_header_order]
+
+
+        combined_data = pd.concat([combined_data, data])
+
+    for key,header in original_headers.items()
+        mcd=merge_categories(header,combined_data[key].unique().tolist())
+        print(fn{key}) 
+        for og,nw in mcd.items()
+            print(f{og}{nw})
+            combined_data[key] = combined_data[key].str.replace(og,nw,case=False)
+
+
+    combined_data.to_excel(output_file, index=False)
+
+if __name__ == __main__
+    parser = argparse.ArgumentParser(description=Process multiple Excel files.)
+    parser.add_argument(input_files, nargs=+, help=List of input Excel files)
+    parser.add_argument(output_file, help=Output Excel file)
+    args = parser.parse_args()
+
+    process_excel_files(args.input_files, args.output_file)
