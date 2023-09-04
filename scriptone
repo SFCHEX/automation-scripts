@@ -14,31 +14,35 @@ original_headers= {Reason Category[BSS, High_temp, other, power, TX,car,car_bmw,
                        Access Type['Access_Guard Fee''Access_Dependency_Guard Fee','Access_Guard Others','Access_Dependency_Guard Others','Access_Owner Fee','Access_Dependency_Owner Fee','Access_Owner Others','Access_Dependency_Owner Others','Access_Permission','Access_Dependency_Permission','Access_Health&Safety','Access_Dependency_Health&Safety','Access_Road','Access_Dependency _Road','Access_ Portabal Generator','Damaged_Burnt','Damaged_Stolen',]
                        }
 
-def merge_categories(original_categories, new_categories)
+def merge_categories(original_categories, new_categories):
     category_mapping = {}
 
-    for new_category in new_categories
+    for new_category in new_categories:
         matched_category = None
         max_similarity = 0
 
-        for original_category in original_categories
-            if pd.isna(new_category) or new_category==0
-                new_category=;
+        if pd.isna(new_category) or new_category == 0:
+            new_category = ''
 
+        for original_category in original_categories:
             similarity = fuzz.ratio(new_category.lower(), original_category.lower())
 
-            if similarity  max_similarity
+            if similarity > max_similarity:
                 max_similarity = similarity
                 matched_category = original_category
 
-        if matched_category
-            if new_category.lower() != matched_category.lower()
+        if matched_category:
+            if max_similarity >= 80:  # Adjust the threshold as needed
                 category_mapping[new_category] = matched_category
-            elif new_category not in category_mapping.values()
+            else:
                 category_mapping[new_category] = new_category
-    category_mapping = {key value for key, value in category_mapping.items() if key != value}
+        else:
+            category_mapping[new_category] = new_category
+
+    category_mapping = {key: value for key, value in category_mapping.items() if key != value}
 
     return category_mapping
+
 
 # Example usage
 
