@@ -34,20 +34,24 @@ original_headers= {"Reason Category":["BSS", "High_temp", "others", "Power", "TX
 def apply_cascaded_to_rule(row):
     comment = row["Comment"]
     cas_matches = re.findall(r'cas', comment, re.IGNORECASE)
-    
+
     if cas_matches:
         match = re.search(r'\d{4}', comment)
         if match:
             site_id_prefix = row["Site ID"][:3]
             site_id_postfix = row["Site ID"][-4:]
             cascaded_to_digits = match.group()
-            
+
             if site_id_postfix == cascaded_to_digits:
                 row["Cascaded To"] = ""
             else:
                 row["Cascaded To"] = site_id_prefix + cascaded_to_digits
-    
+
+            # Add a print statement here to describe the modification
+            print(f"Modified Cascaded To in row {row.name}: '{row['Cascaded To']}'")
+
     return row
+
 
 def apply_custom_rules(row, custom_rules):
     comment = row["Comment"]
@@ -55,6 +59,9 @@ def apply_custom_rules(row, custom_rules):
         if keyword.lower() in comment.lower():
             row["Reason Category"] = rule["Reason Category"]
             row["Reason Sub-Category"] = rule["Reason Sub-Category"]
+            # Add a print statement here to describe the modification
+            print(f"Modified Reason Category in row {row.name}: '{row['Reason Category']}'")
+            print(f"Modified Reason Sub-Category in row {row.name}: '{row['Reason Sub-Category']}'")
             break  # Once a keyword is found, we apply the rule and break out of the loop
     return row
 
@@ -68,14 +75,19 @@ def apply_tcr_logic(row):
             sla_status_words = sla_status.split()
             if sla_status_words and sla_status_words[0].lower() != "planned":
                 row["SLA Status"] = "Planned " + " ".join(sla_status_words[1:])
+                # Add a print statement here to describe the modification
+                print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
     else:
         sla_status = row["SLA Status"]
         if isinstance(sla_status, str):
             sla_status_words = sla_status.split()
             if sla_status_words and sla_status_words[0].lower() != "unplanned":
                 row["SLA Status"] = "Unplanned " + " ".join(sla_status_words[1:])
-    
+                # Add a print statement here to describe the modification
+                print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
+
     return row
+
 
 
 def fixes(data, custom_rules):
