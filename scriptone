@@ -58,9 +58,25 @@ def apply_custom_rules(row, custom_rules):
             break  # Once a keyword is found, we apply the rule and break out of the loop
     return row
 
+def apply_tcr_logic(row):
+    comment = row["Comment"]
+    tcr_match = re.search(r'tcr\s*\d{7}', comment, re.IGNORECASE)
+
+    if tcr_match:
+        sla_status_words = row["SLA Status"].split()
+        if sla_status_words and sla_status_words[0].lower() != "planned":
+            row["SLA Status"] = "Planned " + " ".join(sla_status_words[1:])
+    else:
+        sla_status_words = row["SLA Status"].split()
+        if sla_status_words and sla_status_words[0].lower() != "unplanned":
+            row["SLA Status"] = "Unplanned " + " ".join(sla_status_words[1:])
+    
+    return row
+
 def fixes(data, custom_rules):
     data = data.apply(apply_cascaded_to_rule, axis=1)
     data = data.apply(lambda row: apply_custom_rules(row, custom_rules), axis=1)
+    data = data.apply(apply_tcr_logic, axis=1)
     return data
 def merge_categories(original_categories, new_categories):
     category_mapping = {}
