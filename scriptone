@@ -19,84 +19,43 @@ original_headers= {"Reason Category":["BSS", "High_temp", "others", "Power", "TX
 
                        "Owner":["BSS","FM","GD","ROT","RT","TD","TX","E///","ZTE",""],
                        }
+def apply_tcr_rule(row):
+    if pd.notna(row["Comment"]):
+        tcr_matches = re.findall(r'TCR(\d{5})', row["Comment"], re.IGNORECASE)
+        if tcr_matches:
+            for match in tcr_matches:
+                if "unplanned" in row["SLA Status"].lower():
+                    row["SLA Status"] = "Planned"
+                elif "planned" in row["SLA Status"].lower():
+                    row["SLA Status"] = "Unplanned"
+    return row
 
-import re
+# Define a function to apply the cascaded to rule
+def apply_cascaded_to_rule(row):
+    if pd.notna(row["Comment"]):
+        cas_matches = re.findall(r'(cas|cascaded)\s+to\s+(\d{4})', row["Comment"], re.IGNORECASE)
+        if cas_matches:
+            for match in cas_matches:
+                site_id_prefix = row["Site ID"][:3]
+                new_cascaded_to = site_id_prefix + match[1]
+                if new_cascaded_to.lower() != row["Site ID"].lower():
+                    row["Cascaded To"] = new_cascaded_to
+    return row
 
-def fixes(df):
-    # Rule 1: Replace 'unplanned' with 'planned' or vice versa based on TCR in comments
-    tcr_pattern = r'TCR(\d{7})'
-    rows_to_change = []  # Create a list to store rows that need changes
+# Define a function to apply custom classification rules
+def apply_custom_classification_rules(row, custom_rules):
+    if pd.notna(row["Comment"]):
+        for keyword, rule in custom_rules.items():
+            if keyword.lower() in row["Comment"].lower() and row["Reason Category"] != rule["Reason Category"]:
+                row["Reason Category"] = rule["Reason Category"]
+                row["Reason Sub-Category"] = rule["Reason Subcategory"]
+    return row
 
-    for index, row in df.iterrows():
-        comment = row['Comment']
-        match = re.search(tcr_pattern, comment)
-        if match:
-            tcr_number = match.group(1)
-            current_status = row['SLA Status']
-            if ('planned' in comment.lower() and current_status.lower() == 'unplanned') or \
-               ('unplanned' in comment.lower() and current_status.lower() == 'planned'):
-                rows_to_change.append(index)
-    
-    # Apply changes to the rows that need it
-    for index in rows_to_change:
-        comment = df.at[index, 'Comment']
-        tcr_number = re.search(tcr_pattern, comment).group(1)
-        current_status = df.at[index, 'SLA Status']
-        if 'planned' in comment.lower() and current_status.lower() == 'unplanned':
-            df.at[index, 'SLA Status'] = 'planned'
-            print(f"Changed 'SLA Status' for row {index+1}: From '{current_status}' to 'planned' due to TCR{tcr_number}")
-        elif 'unplanned' in comment.lower() and current_status.lower() == 'planned':
-            df.at[index, 'SLA Status'] = 'unplanned'
-            print(f"Changed 'SLA Status' for row {index+1}: From '{current_status}' to 'unplanned' due to TCR{tcr_number}")
-
-    # Rule 2: Extract and process cascaded information
-    def process_cascaded(row):
-        cas_match = re.search(r'(cascaded|cas)\s+to\s+(\d{4})', row['Comment'], re.I)
-        if cas_match:
-            new_cascaded = row['Site ID'][:3] + cas_match.group(2)
-            if new_cascaded != row['Site ID']:
-                df.at[index, 'cascaded_to'] = new_cascaded
-                print(f"Updated 'cascaded_to' for row {index+1}: New value is '{new_cascaded}'")
-        return None
-
-    df['cascaded_to'] = df.apply(process_cascaded, axis=1)
-    df['cascaded_to'] = df['cascaded_to'].fillna('')  # Fill NaNs with an empty string
-
-    # Rule 3: Complex classification system using rules as sets of keywords
-    classification_rules = [
-        {'keywords': ['BSS'], 'Reason Category': 'BSS', 'Reason Sub-Category': 'BSS_HW'},
-        # Add more rules here as needed
-    ]
-
-    # Create a dictionary to store changes made
-    changes_made = {}
-
-    for rule in classification_rules:
-        for index, row in df.iterrows():
-            comment = row['Comment'].lower()
-            if all(keyword.lower() in comment for keyword in rule['keywords']):
-                current_category = row['Reason Category']
-                current_subcategory = row['Reason Sub-Category']
-                if current_category != rule['Reason Category'] or current_subcategory != rule['Reason Sub-Category']:
-                    changes_made[index] = {
-                        'Category': current_category,
-                        'Subcategory': current_subcategory,
-                        'New Category': rule['Reason Category'],
-                        'New Subcategory': rule['Reason Sub-Category']
-                    }
-
-    # Apply changes to the rows that need it and print only necessary changes
-    for index, change_info in changes_made.items():
-        current_category = df.at[index, 'Reason Category']
-        current_subcategory = df.at[index, 'Reason Sub-Category']
-        if current_category != change_info['New Category'] or current_subcategory != change_info['New Subcategory']:
-            df.at[index, 'Reason Category'] = change_info['New Category']
-            df.at[index, 'Reason Sub-Category'] = change_info['New Subcategory']
-            print(f"Applied classification rule for row {index+1}: "
-                  f"Category='{current_category}' -> '{change_info['New Category']}', "
-                  f"Subcategory='{current_subcategory}' -> '{change_info['New Subcategory']}'")
-
-    return df
+def fixes(data, custom_rules):
+    data = data.apply(apply_tcr_rule, axis=1)
+    data = data.apply(apply_cascaded_to_rule, axis=1)
+    data = data.apply(apply_custom_classification_rules, args=(custom_rules,), axis=1)
+    return data
 
 def merge_categories(original_categories, new_categories):
     category_mapping = {}
