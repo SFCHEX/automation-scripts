@@ -29,21 +29,26 @@ original_headers= {"Reason Category":["BSS", "High_temp", "others", "Power", "TX
 
                        "Owner":["BSS","FM","GD","ROT","RT","TD","TX","E///","ZTE",""],
                        }
+
 def apply_tcr_rule(row):
-    if pd.notna(row["Comment"]):
-        tcr_matches = re.findall(r'TCR(\d{5})', row["Comment"], re.IGNORECASE)
+    if pd.notna(row["Comment"]) and isinstance(row["Comment"], str):
+        tcr_matches = re.findall(r'TCR(\d{7})', row["Comment"], re.IGNORECASE)
         if tcr_matches:
             for match in tcr_matches:
-                if "unplanned" in row["SLA Status"].lower():
-                    row["SLA Status"] = "Planned"
-                elif "planned" in row["SLA Status"].lower():
-                    row["SLA Status"] = "Unplanned"
+                if row["SLA Status"] is not None:
+                    if "unplanned" in row["SLA Status"].lower():
+                        row["SLA Status"] = "Planned"
+                    elif "planned" in row["SLA Status"].lower():
+                        row["SLA Status"] = "Unplanned"
     return row
+
+
 
 # Define a function to apply the cascaded to rule
 def apply_cascaded_to_rule(row):
     if pd.notna(row["Comment"]):
-        cas_matches = re.findall(r'(cas|cascaded)\s+to\s+(\d{4})', row["Comment"], re.IGNORECASE)
+        cas_pattern = r'(cas(cade[d]*)?|cascaded)\s+to\s+(\d{4})'
+        cas_matches = re.findall(cas_pattern, row["Comment"], re.IGNORECASE)
         if cas_matches:
             for match in cas_matches:
                 site_id_prefix = row["Site ID"][:3]
@@ -149,7 +154,7 @@ def process_excel_files(input_files,input_files2 ,output_file):
         
          
 
-        data2["Date"] = datetime.now().date()- timedelta(days=1)
+        data2["Date"] = (datetime.now().date()- timedelta(days=1)).date())
         data2["BSC"]=data2["Controller"]
         data2["2G/3G"]=data2["TECH"]
 
