@@ -2,6 +2,7 @@
 
 import pandas as pd
 import argparse
+import re
 from datetime import datetime, timedelta
 from fuzzywuzzy import fuzz
 
@@ -12,13 +13,62 @@ desired_header_order = ["Date", "Region", "BSC", "Site Name", "Site ID", "2G/3G"
 desired_header_order_mt= ["Site", "TECH", "ID", "Controller", "RBSType", "Region", "nm_tier","EventTime","CeaseTime","MTTR","Duration","Reason Category","Reason Sub-Category","RootCause","DateOfOutage","Vendor","FilledBy","MR_CP","Office","Site Type"]
 
 
-original_headers= {"Reason Category":["BSS", "High_temp", "others", "power", "TX","car","car_bmw",""],
+original_headers= {"Reason Category":["BSS", "High_temp", "others", "Power", "TX",""],
 
                        "Reason Sub-Category":['BSS_HW','BSS_SW','High_Temp','High_Temp_Dependency','Others_Illegal_Intervention','Others_ROT','Others_Dependency_Illegal Intervention','Others_Unknown Reason','Others_Dependency_Unknown Reason','Others_Wrong_Action','Power_Commercial','Power_Dependency_Commercial','Power_Generator','Power_Dependency_Generator','Power_HW (Cct Breakers, Cables)','Power_Dependency_HW (Cct Breakers, Cables)','Power_Power Criteria','Power_Dependency_Power Criteria','Power_Solar Cell','Power_Dependency_Solar Cell','TX_Bad Performance','TX_Dependency_Bad Performance','TX_HW Failure','TX_Dependency_HW Failure','TX_LOS','TX_Dependency_LOS','TX_Physical Connection','TX_Dependency_Physical Connection','TX_Power Supply','TX_Dependency_Power Supply','TX_SW','TX_Telecom Egypt','TX_Dependency_Telecom Egypt','BSS/License',""],
 
                        "Owner":["BSS","FM","GD","ROT","RT","TD","TX","E///","ZTE",""],
                        }
 
+
+def fixes(df):
+    # Rule 1: Replace 'unplanned' with 'planned' or vice versa based on TCR in comments
+    tcr_pattern = r'TCR(\d{7})'
+    for index, row in df.iterrows():
+        comment = row['Comment']
+        match = re.search(tcr_pattern, comment)
+        if match:
+            tcr_number = match.group(1)
+            current_status = row['SLA Status']
+            if 'planned' in comment.lower() and current_status.lower() == 'unplanned':
+                df.at[index, 'SLA Status'] = 'planned'
+                print(f"Changed 'SLA Status' for row {index+1}: From '{current_status}' to 'planned' due to TCR{tcr_number}")
+            elif 'unplanned' in comment.lower() and current_status.lower() == 'planned':
+                df.at[index, 'SLA Status'] = 'unplanned'
+                print(f"Changed 'SLA Status' for row {index+1}: From '{current_status}' to 'unplanned' due to TCR{tcr_number}")
+
+    # Rule 2: Extract and process cascaded information
+    def process_cascaded(row):
+        cas_match = re.search(r'(cascaded|cas)\s+to\s+(\d{4})', row['Comment'], re.I)
+        if cas_match:
+            new_cascaded = row['Site ID'][:3] + cas_match.group(2)
+            if new_cascaded != row['Site ID']:
+                df.at[index, 'cascaded_to'] = new_cascaded
+                print(f"Updated 'cascaded_to' for row {index+1}: New value is '{new_cascaded}'")
+        return None
+
+    df['cascaded_to'] = df.apply(process_cascaded, axis=1)
+    df['cascaded_to'] = df['cascaded_to'].fillna('')  # Fill NaNs with empty string
+
+    # Rule 3: Complex classification system using rules as sets of keywords
+    classification_rules = [
+        {'keywords': ['BSS'], 'Reason Category': 'BSS', 'Reason Sub-Category': 'BSS_HW'},
+        # Add more rules here as needed
+    ]
+
+    for rule in classification_rules:
+        for index, row in df.iterrows():
+            comment = row['Comment'].lower()
+            if all(keyword.lower() in comment for keyword in rule['keywords']):
+                current_category = row['Reason Category']
+                current_subcategory = row['Reason Sub-Category']
+                df.at[index, 'category'] = rule['Reason Category']
+                df.at[index, 'Reason Sub-Category'] = rule['Reason Sub-Category']
+                print(f"Applied classification rule for row {index+1}: "
+                      f"Category='{current_category}' -> '{rule['Reason Category']}', "
+                      f"Subcategory='{current_subcategory}' -> '{rule['Reason Sub-Category']}'")
+
+    return df
 
 def merge_categories(original_categories, new_categories):
     category_mapping = {}
@@ -135,6 +185,7 @@ def process_excel_files(input_files,input_files2 ,output_file):
             combined_data[key] = combined_data[key].str.replace(og,nw)
 
 
+    combined_data=fixes(combined_data)
 
 
     combined_data.to_excel(output_file, index=False)
@@ -146,4 +197,4 @@ if __name__ == "__main__":
     parser.add_argument("-o","--output", help="Output Excel file")
     args = parser.parse_args()
 
-    process_excel_files(args.input1,arg
+    process_excel_files(args.input1,args.input2 ,args.output)
