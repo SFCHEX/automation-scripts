@@ -20,22 +20,34 @@ original_headers= {"Reason Category":["BSS", "High_temp", "others", "Power", "TX
                        "Owner":["BSS","FM","GD","ROT","RT","TD","TX","E///","ZTE",""],
                        }
 
+import re
 
 def fixes(df):
     # Rule 1: Replace 'unplanned' with 'planned' or vice versa based on TCR in comments
     tcr_pattern = r'TCR(\d{7})'
+    rows_to_change = []  # Create a list to store rows that need changes
+
     for index, row in df.iterrows():
         comment = row['Comment']
         match = re.search(tcr_pattern, comment)
         if match:
             tcr_number = match.group(1)
             current_status = row['SLA Status']
-            if 'planned' in comment.lower() and current_status.lower() == 'unplanned':
-                df.at[index, 'SLA Status'] = 'planned'
-                print(f"Changed 'SLA Status' for row {index+1}: From '{current_status}' to 'planned' due to TCR{tcr_number}")
-            elif 'unplanned' in comment.lower() and current_status.lower() == 'planned':
-                df.at[index, 'SLA Status'] = 'unplanned'
-                print(f"Changed 'SLA Status' for row {index+1}: From '{current_status}' to 'unplanned' due to TCR{tcr_number}")
+            if ('planned' in comment.lower() and current_status.lower() == 'unplanned') or \
+               ('unplanned' in comment.lower() and current_status.lower() == 'planned'):
+                rows_to_change.append(index)
+    
+    # Apply changes to the rows that need it
+    for index in rows_to_change:
+        comment = df.at[index, 'Comment']
+        tcr_number = re.search(tcr_pattern, comment).group(1)
+        current_status = df.at[index, 'SLA Status']
+        if 'planned' in comment.lower() and current_status.lower() == 'unplanned':
+            df.at[index, 'SLA Status'] = 'planned'
+            print(f"Changed 'SLA Status' for row {index+1}: From '{current_status}' to 'planned' due to TCR{tcr_number}")
+        elif 'unplanned' in comment.lower() and current_status.lower() == 'planned':
+            df.at[index, 'SLA Status'] = 'unplanned'
+            print(f"Changed 'SLA Status' for row {index+1}: From '{current_status}' to 'unplanned' due to TCR{tcr_number}")
 
     # Rule 2: Extract and process cascaded information
     def process_cascaded(row):
@@ -48,7 +60,7 @@ def fixes(df):
         return None
 
     df['cascaded_to'] = df.apply(process_cascaded, axis=1)
-    df['cascaded_to'] = df['cascaded_to'].fillna('')  # Fill NaNs with empty string
+    df['cascaded_to'] = df['cascaded_to'].fillna('')  # Fill NaNs with an empty string
 
     # Rule 3: Complex classification system using rules as sets of keywords
     classification_rules = [
@@ -56,17 +68,33 @@ def fixes(df):
         # Add more rules here as needed
     ]
 
+    # Create a dictionary to store changes made
+    changes_made = {}
+
     for rule in classification_rules:
         for index, row in df.iterrows():
             comment = row['Comment'].lower()
             if all(keyword.lower() in comment for keyword in rule['keywords']):
                 current_category = row['Reason Category']
                 current_subcategory = row['Reason Sub-Category']
-                df.at[index, 'category'] = rule['Reason Category']
-                df.at[index, 'Reason Sub-Category'] = rule['Reason Sub-Category']
-                print(f"Applied classification rule for row {index+1}: "
-                      f"Category='{current_category}' -> '{rule['Reason Category']}', "
-                      f"Subcategory='{current_subcategory}' -> '{rule['Reason Sub-Category']}'")
+                if current_category != rule['Reason Category'] or current_subcategory != rule['Reason Sub-Category']:
+                    changes_made[index] = {
+                        'Category': current_category,
+                        'Subcategory': current_subcategory,
+                        'New Category': rule['Reason Category'],
+                        'New Subcategory': rule['Reason Sub-Category']
+                    }
+
+    # Apply changes to the rows that need it and print only necessary changes
+    for index, change_info in changes_made.items():
+        current_category = df.at[index, 'Reason Category']
+        current_subcategory = df.at[index, 'Reason Sub-Category']
+        if current_category != change_info['New Category'] or current_subcategory != change_info['New Subcategory']:
+            df.at[index, 'Reason Category'] = change_info['New Category']
+            df.at[index, 'Reason Sub-Category'] = change_info['New Subcategory']
+            print(f"Applied classification rule for row {index+1}: "
+                  f"Category='{current_category}' -> '{change_info['New Category']}', "
+                  f"Subcategory='{current_subcategory}' -> '{change_info['New Subcategory']}'")
 
     return df
 
