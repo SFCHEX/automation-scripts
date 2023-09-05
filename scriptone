@@ -63,15 +63,20 @@ def apply_tcr_logic(row):
     tcr_match = re.search(r'tcr\s*\d{7}', comment, re.IGNORECASE)
 
     if tcr_match:
-        sla_status_words = row["SLA Status"].split()
-        if sla_status_words and sla_status_words[0].lower() != "planned":
-            row["SLA Status"] = "Planned " + " ".join(sla_status_words[1:])
+        sla_status = row["SLA Status"]
+        if isinstance(sla_status, str):
+            sla_status_words = sla_status.split()
+            if sla_status_words and sla_status_words[0].lower() != "planned":
+                row["SLA Status"] = "Planned " + " ".join(sla_status_words[1:])
     else:
-        sla_status_words = row["SLA Status"].split()
-        if sla_status_words and sla_status_words[0].lower() != "unplanned":
-            row["SLA Status"] = "Unplanned " + " ".join(sla_status_words[1:])
+        sla_status = row["SLA Status"]
+        if isinstance(sla_status, str):
+            sla_status_words = sla_status.split()
+            if sla_status_words and sla_status_words[0].lower() != "unplanned":
+                row["SLA Status"] = "Unplanned " + " ".join(sla_status_words[1:])
     
     return row
+
 
 def fixes(data, custom_rules):
     data = data.apply(apply_cascaded_to_rule, axis=1)
