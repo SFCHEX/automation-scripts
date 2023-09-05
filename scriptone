@@ -29,20 +29,9 @@ original_headers= {"Reason Category":["BSS", "High_temp", "others", "Power", "TX
 
                        "Owner":["BSS","FM","GD","ROT","RT","TD","TX","E///","ZTE",""],
                        }
-# Define a function to apply custom classification rules
-def apply_custom_classification_rules(row, custom_rules):
-    if pd.notna(row["Comment"]):
-        for keyword, rule in custom_rules.items():
-            if keyword.lower() in row["Comment"].lower() and row["Reason Category"] != rule["Reason Category"]:
-                row["Reason Category"] = rule["Reason Category"]
-                row["Reason Sub-Category"] = rule["Reason Sub-Category"]
-                print(f"Changing Reason Category to '{rule['Reason Category']}' and Reason Sub-Category to '{rule['Reason Sub-Category']}' ")
-    return row
 
 
-
-# Define a function to apply the cascaded to rule
-def extract_cascaded_to_from_row(row):
+def apply_cascaded_to_rule(row):
     comment = row["Comment"]
     cas_matches = re.findall(r'cas', comment, re.IGNORECASE)
     if cas_matches:
@@ -52,10 +41,8 @@ def extract_cascaded_to_from_row(row):
     return None
 
 
-
 def fixes(data, custom_rules):
     data = data.apply(apply_cascaded_to_rule, axis=1)
-    data = data.apply(apply_custom_classification_rules, args=(custom_rules,), axis=1)
     return data
 
 def merge_categories(original_categories, new_categories):
