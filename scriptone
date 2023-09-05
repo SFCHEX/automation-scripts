@@ -60,14 +60,13 @@ def apply_custom_classification_rules(row, custom_rules):
 # Define a function to apply the cascaded to rule
 def apply_cascaded_to_rule(row):
     if pd.notna(row["Comment"]):
-        cas_pattern = r'(cas(cade[d]*)?|cascaded)\s*to\s*(\d{4})'
+        cas_pattern = r'cas\s*to\s*(\d{4})'
         cas_matches = re.findall(cas_pattern, row["Comment"], re.IGNORECASE)
         if cas_matches:
-            for match in cas_matches:
-                new_cascaded_to = match[2]
-                if new_cascaded_to != row["Site ID"]:
-                    print(f"Changing Cascaded To from '{row['Cascaded To']}' to '{new_cascaded_to}' for row:\n{row}")
-                    row["Cascaded To"] = new_cascaded_to
+            new_cascaded_to = "".join(cas_matches)
+            if new_cascaded_to != row["Site ID"]:
+                print(f"Changing Cascaded To from '{row['Cascaded To']}' to '{new_cascaded_to}' for row:\n{row}")
+                row["Cascaded To"] = new_cascaded_to
     return row
 
 
