@@ -69,22 +69,23 @@ def apply_tcr_logic(row):
     comment = row["Comment"]
     tcr_match = re.search(r'tcr\s*\d{7}', comment, re.IGNORECASE)
 
-    if tcr_match:
-        sla_status = row["SLA Status"]
-        if isinstance(sla_status, str):
-            sla_status_words = sla_status.split()
-            if sla_status_words and sla_status_words[0].lower() != "planned":
-                row["SLA Status"] = "Planned " + " ".join(sla_status_words[1:])
-                # Add a print statement here to describe the modification
-                print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
-    else:
-        sla_status = row["SLA Status"]
-        if isinstance(sla_status, str):
-            sla_status_words = sla_status.split()
-            if sla_status_words and sla_status_words[0].lower() != "unplanned":
-                row["SLA Status"] = "Unplanned " + " ".join(sla_status_words[1:])
-                # Add a print statement here to describe the modification
-                print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
+    if pd.notna(row["SLA Status"]):  # Check if "SLA Status" cell is not empty
+        if tcr_match:
+            sla_status = row["SLA Status"]
+            if isinstance(sla_status, str):
+                sla_status_words = sla_status.split()
+                if sla_status_words and sla_status_words[0].lower() != "planned":
+                    row["SLA Status"] = "Planned " + " ".join(sla_status_words[1:])
+                    # Add a print statement here to describe the modification
+                    print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
+        else:
+            sla_status = row["SLA Status"]
+            if isinstance(sla_status, str):
+                sla_status_words = sla_status.split()
+                if sla_status_words and sla_status_words[0].lower() != "unplanned":
+                    row["SLA Status"] = "Unplanned " + " ".join(sla_status_words[1:])
+                    # Add a print statement here to describe the modification
+                    print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
 
     return row
 
