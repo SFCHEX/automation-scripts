@@ -178,7 +178,7 @@ def process_excel_files(input_files,input_files2 ,output_file):
         
          
 
-        data2["Date"] = (datetime.now()- timedelta(days=1)).strftime(date_format)
+        data2["Date"] = (datetime.now()- timedelta(days=1))
         data2["BSC"]=data2["Controller"]
         data2["2G/3G"]=data2["TECH"]
 
@@ -203,6 +203,7 @@ def process_excel_files(input_files,input_files2 ,output_file):
 
 
     combined_data = pd.concat([combined_data, combined_data_mt])
+    combined_data["Date"]=combined_data["Date"].apply(lambda x: x.strftime("%m-%d-%Y"))
     combined_data=combined_data[desired_header_order]
 
     for key,header in original_headers.items():
