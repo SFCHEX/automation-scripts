@@ -6,6 +6,16 @@ import re
 from datetime import datetime, timedelta
 from fuzzywuzzy import fuzz
 
+
+custom_rules = {
+    "BSS": {
+        "Category": "BSS_Custom",
+        "Subcategory": "BSS_HW_Custom"
+    },
+
+    # Add more rules here...
+}
+
 desired_header_order = ["Date", "Region", "BSC", "Site Name", "Site ID", "2G/3G", "ID","Site Category","Priority","Technical Area","Site Layer - Qism","Type Of Sharing","Host/Guest","Alarm Occurance Time","Fault Occurance Time","Fault Clearance Time","MTTR","Hybrid Down Time","SLA Status","Site Type", "Reason Category","Reason Sub-Category","Comment", "Owner","Access Type","Cascaded To", "Final", "Office","Corp","Generator","Vendor"]
 
 
