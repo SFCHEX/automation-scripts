@@ -30,6 +30,7 @@ original_headers= {"Reason Category":["BSS", "High_temp", "others", "Power", "TX
                        "Owner":["BSS","FM","GD","ROT","RT","TD","TX","E///","ZTE",""],
                        }
 
+# Define a function to apply the TCR rule
 def apply_tcr_rule(row):
     if pd.notna(row["Comment"]) and isinstance(row["Comment"], str):
         tcr_matches = re.findall(r'TCR(\d{7})', row["Comment"], re.IGNORECASE)
@@ -38,23 +39,10 @@ def apply_tcr_rule(row):
                 if row["SLA Status"] is not None:
                     if "unplanned" in row["SLA Status"].lower():
                         row["SLA Status"] = "Planned"
+                        print(f"Changing SLA Status to 'Planned' for row:\n{row}")
                     elif "planned" in row["SLA Status"].lower():
                         row["SLA Status"] = "Unplanned"
-    return row
-
-
-
-# Define a function to apply the cascaded to rule
-def apply_cascaded_to_rule(row):
-    if pd.notna(row["Comment"]):
-        cas_pattern = r'(cas(cade[d]*)?|cascaded)\s+to\s+(\d{4})'
-        cas_matches = re.findall(cas_pattern, row["Comment"], re.IGNORECASE)
-        if cas_matches:
-            for match in cas_matches:
-                site_id_prefix = row["Site ID"][:3]
-                new_cascaded_to = site_id_prefix + match[1]
-                if new_cascaded_to.lower() != row["Site ID"].lower():
-                    row["Cascaded To"] = new_cascaded_to
+                        print(f"Changing SLA Status to 'Unplanned' for row:\n{row}")
     return row
 
 # Define a function to apply custom classification rules
@@ -64,7 +52,26 @@ def apply_custom_classification_rules(row, custom_rules):
             if keyword.lower() in row["Comment"].lower() and row["Reason Category"] != rule["Reason Category"]:
                 row["Reason Category"] = rule["Reason Category"]
                 row["Reason Sub-Category"] = rule["Reason Subcategory"]
+                print(f"Changing Reason Category to '{rule['Reason Category']}' and Reason Sub-Category to '{rule['Reason Subcategory']}' for row:\n{row}")
     return row
+
+
+
+# Define a function to apply the cascaded to rule
+def apply_cascaded_to_rule(row):
+    if pd.notna(row["Comment"]):
+        cas_pattern = r'(cas(cade[d]*)?|cascaded)\s*to\s*(\d{4})'
+        cas_matches = re.findall(cas_pattern, row["Comment"], re.IGNORECASE)
+        if cas_matches:
+            for match in cas_matches:
+                new_cascaded_to = match[2]
+                if new_cascaded_to != row["Site ID"]:
+                    print(f"Changing Cascaded To from '{row['Cascaded To']}' to '{new_cascaded_to}' for row:\n{row}")
+                    row["Cascaded To"] = new_cascaded_to
+    return row
+
+
+
 
 def fixes(data, custom_rules):
     data = data.apply(apply_tcr_rule, axis=1)
