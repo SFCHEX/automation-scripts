@@ -178,6 +178,7 @@ def process_excel_files(input_files,input_files2 ,output_file):
          
 
         data2["Date"] = (datetime.now()- timedelta(days=1)).date()
+        data2["Date"] =  data2["Date"].dt.date()
         data2["BSC"]=data2["Controller"]
         data2["2G/3G"]=data2["TECH"]
 
