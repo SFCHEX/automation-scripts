@@ -48,10 +48,20 @@ def apply_cascaded_to_rule(row):
                 row["Cascaded To"] = site_id_prefix + cascaded_to_digits
     
     return row
+
+def apply_custom_rules(row, custom_rules):
+    comment = row["Comment"]
+    for keyword, rule in custom_rules.items():
+        if keyword.lower() in comment.lower():
+            row["Reason Category"] = rule["Reason Category"]
+            row["Reason Sub-Category"] = rule["Reason Sub-Category"]
+            break  # Once a keyword is found, we apply the rule and break out of the loop
+    return row
+
 def fixes(data, custom_rules):
     data = data.apply(apply_cascaded_to_rule, axis=1)
+    data = data.apply(lambda row: apply_custom_rules(row, custom_rules), axis=1)
     return data
-
 def merge_categories(original_categories, new_categories):
     category_mapping = {}
 
