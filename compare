@@ -9,13 +9,17 @@ def compare_excel_files(file1, file2):
         print(f"Error reading files: {e}")
         return
 
-    differences = df1.compare(df2)
+    differences = (df1 != df2)
+    rows_with_differences = differences.any(axis=1)
 
-    if not differences.empty:
+    if rows_with_differences.any():
         print("Differences found:")
-        for index, row in differences.iterrows():
-            for column, (val1, val2) in row.items():
-                print(f"In row {index + 2}, column {column}, Sheet 1 has '{val1}' while Sheet 2 has '{val2}'.")
+        for index, row in df1[rows_with_differences].iterrows():
+            for col in df1.columns:
+                val1 = row[col]
+                val2 = df2.at[index, col]
+                if val1 != val2:
+                    print(f"In row {index + 2}, header {col} for sheet 1 says '{val1}' while sheet 2 says '{val2}'.")
     else:
         print("No differences found.")
 
