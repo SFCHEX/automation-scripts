@@ -9,10 +9,12 @@ def compare_excel_files(file1, file2):
         print(f"Error reading files: {e}")
         return
 
-    differences = (df1 != df2).stack()
-    if differences.any():
+    differences = df1.compare(df2)
+    if not differences.empty:
         print("Differences found:")
-        print(differences[differences].to_string())
+        for index, row in differences.iterrows():
+            for col, (val1, val2) in row.items():
+                print(f"In row {index}, header {col} for sheet 1 says '{val1}' while sheet 2 says '{val2}'.")
     else:
         print("No differences found.")
 
