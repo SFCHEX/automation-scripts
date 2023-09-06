@@ -1,0 +1,27 @@
+import pandas as pd
+import sys
+
+def compare_excel_files(file1, file2):
+    try:
+        df1 = pd.read_excel(file1, engine='openpyxl')
+        df2 = pd.read_excel(file2, engine='openpyxl')
+    except Exception as e:
+        print(f"Error reading files: {e}")
+        return
+
+    differences = (df1 != df2).stack()
+    if differences.any():
+        print("Differences found:")
+        print(differences[differences].to_string())
+    else:
+        print("No differences found.")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python excel_compare.py <file1.xlsx> <file2.xlsx>")
+        sys.exit(1)
+
+    file1 = sys.argv[1]
+    file2 = sys.argv[2]
+
+    compare_excel_files(file1, file2)
