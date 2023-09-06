@@ -10,11 +10,12 @@ def compare_excel_files(file1, file2):
         return
 
     differences = df1.compare(df2)
+
     if not differences.empty:
         print("Differences found:")
         for index, row in differences.iterrows():
-            for col, (val1, val2) in row.items():
-                print(f"In row {index}, header {col} for sheet 1 says '{val1}' while sheet 2 says '{val2}'.")
+            for column, (val1, val2) in row.items():
+                print(f"In row {index + 2}, column {column}, Sheet 1 has '{val1}' while Sheet 2 has '{val2}'.")
     else:
         print("No differences found.")
 
