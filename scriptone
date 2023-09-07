@@ -107,8 +107,9 @@ def merge_categories(original_categories, new_categories):
         matched_category = None
         max_similarity = 0
 
-        if pd.isna(new_category) or new_category == 0:
-            new_category = ''
+        # Skip empty strings in new_categories
+        if pd.isna(new_category) or new_category == 0 or new_category.strip() == '':
+            continue
 
         for original_category in original_categories:
             similarity = fuzz.ratio(new_category.lower(), original_category.lower())
@@ -132,9 +133,6 @@ def merge_categories(original_categories, new_categories):
     category_mapping = {key: value for key, value in category_mapping.items() if key != value}
 
     return category_mapping
-
-
-
 
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
