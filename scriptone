@@ -108,15 +108,11 @@ def merge_categories(original_categories, new_categories):
     # Create a dictionary to store the mapping of new categories to original categories
     category_mapping = {}
 
-    # Iterate through new categories
-    for new_category in new_categories:
-        if not isinstance(new_category, str) or not new_category.strip():
-            continue  # Skip non-strings and empty strings
-
+    # Helper function to find the best match
+    def find_best_match(new_category, original_categories):
+        max_similarity = -1
         best_match = None
-        max_similarity = 0
 
-        # Iterate through original categories to find the best match
         for original_category in original_categories:
             similarity = fuzz.ratio(new_category, original_category)
 
@@ -124,13 +120,18 @@ def merge_categories(original_categories, new_categories):
                 max_similarity = similarity
                 best_match = original_category
 
-        if best_match:
-            # Check if the best match contains the new category or vice versa
-            if new_category in best_match or best_match in new_category:
-                category_mapping[new_category] = best_match
+        return best_match
 
-    # Remove exact duplicates in the final mapping
-    category_mapping = {k: v for k, v in category_mapping.items() if k != v and k!=""}
+    # Iterate through new categories
+    for new_category in new_categories:
+        if not isinstance(new_category, str) or not new_category.strip():
+            continue  # Skip non-strings and empty strings
+
+        # Find the best match in the original categories
+        best_match = find_best_match(new_category, original_categories)
+
+        if best_match and best_match != new_category:
+            category_mapping[new_category] = best_match
 
     return category_mapping
 
