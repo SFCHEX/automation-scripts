@@ -70,7 +70,7 @@ def apply_custom_rules(row, custom_rules):
 
 def apply_tcr_logic(row):
     comment = row["Comment"]
-    tcr_match = re.search(r'tcr\s*\d{5}', comment, re.IGNORECASE)
+    tcr_match = re.search(r'tcr\s*\d{6,7}', comment, re.IGNORECASE)
 
     if pd.notna(row["SLA Status"]):  # Check if "SLA Status" cell is not empty
         if tcr_match:
@@ -128,7 +128,7 @@ def merge_categories(original_categories, new_categories):
         else:
             category_mapping[new_category] = new_category
 
-    category_mapping = {key: value for key, value in category_mapping.items() if key != value}
+    category_mapping = {key: value for key, value in category_mapping.items() if key != value and key!=""}
 
     return category_mapping
 
