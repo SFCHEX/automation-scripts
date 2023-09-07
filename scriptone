@@ -82,6 +82,21 @@ def apply_cascaded_to_rule(row):
 
     return row
 
+def remove_dependency_from_subcategory(row):
+    comment = row["Comment"]
+    sub_category = row["Reason Sub-Category"]
+
+    if not re.search(r'cas', comment, re.IGNORECASE):
+        # Remove "Dependency" from the sub-category using regex
+        row["Reason Sub-Category"] = re.sub(r'_?Dependency$', '', sub_category, flags=re.IGNORECASE)
+
+    elif re.search(r'cas', comment, re.IGNORECASE) and not re.search(r'_?Dependency', sub_category, re.IGNORECASE):
+        # Add "Dependency" to the sub-category using regex
+        row["Reason Sub-Category"] = f"{sub_category}_Dependency"
+
+    return row
+
+
 
 def apply_custom_rules(row, custom_rules):
     comment = row["Comment"]
@@ -128,6 +143,8 @@ def fixes(data, custom_rules):
     data = data.apply(apply_cascaded_to_rule, axis=1)
     data = data.apply(lambda row: apply_custom_rules(row, custom_rules), axis=1)
     data = data.apply(apply_tcr_logic, axis=1)
+    data = data.apply(remove_dependency_from_subcategory, axis=1)
+
     return data
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
