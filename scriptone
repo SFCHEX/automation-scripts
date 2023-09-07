@@ -112,35 +112,39 @@ def merge_categories(original_categories, new_categories):
         if not isinstance(new_category, str) or not new_category.strip():  # Skip non-strings and empty strings
             continue
 
-        matched_category = None
+        best_match = None
         max_similarity = 0
 
         for original_category in original_categories:
-            similarity = fuzz.ratio(new_category.lower(), original_category.lower())
+            similarity = fuzz.ratio(new_category, original_category)
 
             if similarity > max_similarity:
                 max_similarity = similarity
-                matched_category = original_category
+                best_match = original_category
 
-        if matched_category:
+        if best_match:
             if max_similarity >= 80:  # Adjust the threshold as needed
-                new_category_parts = new_category.lower().split()
-                matched_category_parts = matched_category.lower().split()
-                common_parts = [part for part in new_category_parts if part in matched_category_parts]
-                if common_parts:
-                    new_category = ' '.join([part for part in new_category_parts if part not in common_parts])
-                category_mapping[new_category] = matched_category
+                if best_match not in category_mapping:
+                    category_mapping[best_match] = set()
+                category_mapping[best_match].add(new_category)
             else:
                 category_mapping[new_category] = new_category
         else:
             category_mapping[new_category] = new_category
 
-    category_mapping = {key: value for key, value in category_mapping.items() if key != value and key != ""}
+    # Merge variations into a single category while preserving casing
+    for original_category, variations in category_mapping.items():
+        if isinstance(variations, set):
+            for variation in variations:
+                category_mapping[variation] = original_category
+
+    # Handle cases where one string is contained within another
+    for category in list(category_mapping.keys()):
+        for other_category in list(category_mapping.keys()):
+            if category != other_category and category in other_category:
+                category_mapping[category] = other_category
 
     return category_mapping
-
-
-
 
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
