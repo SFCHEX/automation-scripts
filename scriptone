@@ -105,13 +105,13 @@ def fixes(data, custom_rules):
     return data
 from fuzzywuzzy import fuzz
 
-def map_similar_categories(original_categories, new_categories):
+def merge_categories(original_categories, new_categories):
     # Initialize a dictionary to store mappings
     mappings = {}
     
-    # Remove empty strings from input lists
-    original_categories = [x for x in original_categories if x]
-    new_categories = [x for x in new_categories if x]
+    # Remove empty strings from input lists and filter for strings
+    original_categories = [x for x in original_categories if x and is_string(x)]
+    new_categories = [x for x in new_categories if x and is_string(x)]
 
     # Iterate through each new category
     for new_cat in new_categories:
@@ -121,7 +121,7 @@ def map_similar_categories(original_categories, new_categories):
         # Iterate through each original category
         for orig_cat in original_categories:
             # Calculate the similarity score between the two categories
-            similarity_score = fuzz.ratio(new_cat.lower(), orig_cat.lower())
+            similarity_score = fuzz.ratio(str(new_cat).lower(), str(orig_cat).lower())
 
             # If the similarity score is above a threshold (e.g., 80) and higher than the current best,
             # consider them a match
