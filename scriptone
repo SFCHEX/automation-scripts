@@ -103,6 +103,7 @@ def fixes(data, custom_rules):
     data = data.apply(lambda row: apply_custom_rules(row, custom_rules), axis=1)
     data = data.apply(apply_tcr_logic, axis=1)
     return data
+from fuzzywuzzy import fuzz
 
 def merge_categories(original_categories, new_categories):
     # Create a dictionary to store the mapping of new categories to original categories
@@ -110,11 +111,17 @@ def merge_categories(original_categories, new_categories):
 
     # Helper function to find the best match
     def find_best_match(new_category, original_categories):
+        # First, check for exact case-sensitive matches
+        for original_category in original_categories:
+            if new_category == original_category:
+                return original_category
+
+        # If no exact case-sensitive match, perform fuzzy matching
         max_similarity = -1
         best_match = None
 
         for original_category in original_categories:
-            similarity = fuzz.ratio(new_category, original_category)
+            similarity = fuzz.ratio(new_category.lower(), original_category.lower())
 
             if similarity > max_similarity:
                 max_similarity = similarity
@@ -134,6 +141,8 @@ def merge_categories(original_categories, new_categories):
             category_mapping[new_category] = best_match
 
     return category_mapping
+
+
 
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
