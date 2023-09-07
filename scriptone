@@ -111,17 +111,11 @@ def merge_categories(original_categories, new_categories):
 
     # Helper function to find the best match
     def find_best_match(new_category, original_categories):
-        # First, check for exact case-sensitive matches
-        for original_category in original_categories:
-            if new_category == original_category:
-                return original_category
-
-        # If no exact case-sensitive match, perform fuzzy matching
         max_similarity = -1
         best_match = None
 
         for original_category in original_categories:
-            similarity = fuzz.ratio(new_category.lower(), original_category.lower())
+            similarity = fuzz.ratio(new_category, original_category)
 
             if similarity > max_similarity:
                 max_similarity = similarity
@@ -137,12 +131,13 @@ def merge_categories(original_categories, new_categories):
         # Find the best match in the original categories
         best_match = find_best_match(new_category, original_categories)
 
-        if best_match and best_match != new_category:
+        if best_match:
             category_mapping[new_category] = best_match
+        else:
+            # If no match is found, map the new category to itself
+            category_mapping[new_category] = new_category
 
     return category_mapping
-
-
 
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
