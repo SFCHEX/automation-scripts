@@ -104,6 +104,7 @@ def fixes(data, custom_rules):
     data = data.apply(apply_tcr_logic, axis=1)
     return data
 
+
 def merge_categories(original_categories, new_categories):
     category_mapping = {}
 
@@ -125,16 +126,21 @@ def merge_categories(original_categories, new_categories):
             if max_similarity >= 80:  # Adjust the threshold as needed
                 new_category_parts = new_category.lower().split()
                 matched_category_parts = matched_category.lower().split()
-                new_category = ' '.join([part for part in new_category_parts if part not in matched_category_parts])
+                common_parts = [part for part in new_category_parts if part in matched_category_parts]
+                if common_parts:
+                    new_category = ' '.join([part for part in new_category_parts if part not in common_parts])
                 category_mapping[new_category] = matched_category
             else:
                 category_mapping[new_category] = new_category
         else:
             category_mapping[new_category] = new_category
 
-    category_mapping = {key: value for key, value in category_mapping.items() if key != value and key!=""}
+    category_mapping = {key: value for key, value in category_mapping.items() if key != value and key != ""}
 
     return category_mapping
+
+
+
 
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
