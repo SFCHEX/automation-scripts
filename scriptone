@@ -104,17 +104,19 @@ def fixes(data, custom_rules):
     data = data.apply(apply_tcr_logic, axis=1)
     return data
 
-
 def merge_categories(original_categories, new_categories):
+    # Create a dictionary to store the mapping of new categories to original categories
     category_mapping = {}
 
+    # Iterate through new categories
     for new_category in new_categories:
-        if not isinstance(new_category, str) or not new_category.strip():  # Skip non-strings and empty strings
-            continue
+        if not isinstance(new_category, str) or not new_category.strip():
+            continue  # Skip non-strings and empty strings
 
         best_match = None
         max_similarity = 0
 
+        # Iterate through original categories to find the best match
         for original_category in original_categories:
             similarity = fuzz.ratio(new_category, original_category)
 
@@ -123,31 +125,12 @@ def merge_categories(original_categories, new_categories):
                 best_match = original_category
 
         if best_match:
-            if max_similarity >= 80:  # Adjust the threshold as needed
-                if best_match not in category_mapping:
-                    category_mapping[best_match] = set()
-                category_mapping[best_match].add(new_category)
-            else:
-                category_mapping[new_category] = new_category
-        else:
-            category_mapping[new_category] = new_category
+            # Check if the best match contains the new category or vice versa
+            if new_category in best_match or best_match in new_category:
+                category_mapping[new_category] = best_match
 
-    # Merge variations into a single category while preserving casing
-    for original_category, variations in category_mapping.items():
-        if isinstance(variations, set):
-            for variation in variations:
-                category_mapping[variation] = original_category
-
-    # Create a list of keys to remove
-    keys_to_remove = []
-    for category in category_mapping:
-        for other_category in category_mapping:
-            if category != other_category and category in other_category:
-                keys_to_remove.append(category)
-
-    # Remove the keys
-    for key in keys_to_remove:
-        del category_mapping[key]
+    # Remove exact duplicates in the final mapping
+    category_mapping = {k: v for k, v in category_mapping.items() if k != v and k!=""}
 
     return category_mapping
 
