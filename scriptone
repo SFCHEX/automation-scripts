@@ -105,49 +105,35 @@ def fixes(data, custom_rules):
     return data
 from fuzzywuzzy import fuzz
 
-def merge_categories(original_categories, new_categories):
-    # Create a dictionary to store the mapping of new categories to original categories
-    category_mapping = {}
+def map_similar_categories(original_categories, new_categories):
+    # Initialize a dictionary to store mappings
+    mappings = {}
+    
+    # Remove empty strings from input lists
+    original_categories = [x for x in original_categories if x]
+    new_categories = [x for x in new_categories if x]
 
-    # Helper function to find the best match
-    def find_best_match(new_category, original_categories):
-        max_similarity = -1
-        best_match = None
+    # Iterate through each new category
+    for new_cat in new_categories:
+        best_similarity = 0
+        best_orig_cat = None
+        
+        # Iterate through each original category
+        for orig_cat in original_categories:
+            # Calculate the similarity score between the two categories
+            similarity_score = fuzz.ratio(new_cat.lower(), orig_cat.lower())
 
-        for original_category in original_categories:
-            similarity = fuzz.ratio(new_category, original_category)
-
-            if similarity > max_similarity:
-                max_similarity = similarity
-                best_match = original_category
-
-        return best_match
-
-    # Iterate through new categories
-    for new_category in new_categories:
-        if not isinstance(new_category, str) or not new_category.strip():
-            continue  # Skip non-strings and empty strings
-
-        # Check if the new category is directly included in any of the original categories
-        direct_inclusion_match = None
-        for original_category in original_categories:
-            if new_category.lower() in original_category.lower():
-                direct_inclusion_match = original_category
-                break
-
-        if direct_inclusion_match:
-            category_mapping[new_category] = direct_inclusion_match
-        else:
-            # Find the best fuzzy match in the original categories
-            best_match = find_best_match(new_category, original_categories)
-
-            if best_match:
-                category_mapping[new_category] = best_match
-            else:
-                # If no match is found, map the new category to itself
-                category_mapping[new_category] = new_category
-
-    return category_mapping
+            # If the similarity score is above a threshold (e.g., 80) and higher than the current best,
+            # consider them a match
+            if similarity_score >= 80 and similarity_score > best_similarity:
+                best_similarity = similarity_score
+                best_orig_cat = orig_cat
+        
+        # If a match is found, add it to the mapping
+        if best_orig_cat:
+            mappings[new_cat] = best_orig_cat
+    
+    return mappings
 
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
