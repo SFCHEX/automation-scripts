@@ -128,14 +128,24 @@ def merge_categories(original_categories, new_categories):
         if not isinstance(new_category, str) or not new_category.strip():
             continue  # Skip non-strings and empty strings
 
-        # Find the best match in the original categories
-        best_match = find_best_match(new_category, original_categories)
+        # Check if the new category is directly included in any of the original categories
+        direct_inclusion_match = None
+        for original_category in original_categories:
+            if new_category.lower() in original_category.lower():
+                direct_inclusion_match = original_category
+                break
 
-        if best_match:
-            category_mapping[new_category] = best_match
+        if direct_inclusion_match:
+            category_mapping[new_category] = direct_inclusion_match
         else:
-            # If no match is found, map the new category to itself
-            category_mapping[new_category] = new_category
+            # Find the best fuzzy match in the original categories
+            best_match = find_best_match(new_category, original_categories)
+
+            if best_match:
+                category_mapping[new_category] = best_match
+            else:
+                # If no match is found, map the new category to itself
+                category_mapping[new_category] = new_category
 
     return category_mapping
 
