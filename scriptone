@@ -138,11 +138,16 @@ def merge_categories(original_categories, new_categories):
             for variation in variations:
                 category_mapping[variation] = original_category
 
-    # Handle cases where one string is contained within another
-    for category in list(category_mapping.keys()):
-        for other_category in list(category_mapping.keys()):
+    # Create a list of keys to remove
+    keys_to_remove = []
+    for category in category_mapping:
+        for other_category in category_mapping:
             if category != other_category and category in other_category:
-                category_mapping[category] = other_category
+                keys_to_remove.append(category)
+
+    # Remove the keys
+    for key in keys_to_remove:
+        del category_mapping[key]
 
     return category_mapping
 
