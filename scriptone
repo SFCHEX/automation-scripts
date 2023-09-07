@@ -100,12 +100,11 @@ def fixes(data, custom_rules):
     data = data.apply(apply_tcr_logic, axis=1)
     return data
 
-
 def merge_categories(original_categories, new_categories):
     category_mapping = {}
 
     for new_category in new_categories:
-        if not new_category.strip():  # Skip empty strings
+        if not isinstance(new_category, str) or not new_category.strip():  # Skip non-strings and empty strings
             continue
 
         matched_category = None
@@ -132,7 +131,6 @@ def merge_categories(original_categories, new_categories):
     category_mapping = {key: value for key, value in category_mapping.items() if key != value}
 
     return category_mapping
-
 
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
