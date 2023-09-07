@@ -103,15 +103,15 @@ def fixes(data, custom_rules):
     data = data.apply(lambda row: apply_custom_rules(row, custom_rules), axis=1)
     data = data.apply(apply_tcr_logic, axis=1)
     return data
-from fuzzywuzzy import fuzz
+
 
 def merge_categories(original_categories, new_categories):
     # Initialize a dictionary to store mappings
     mappings = {}
     
-    # Remove empty strings from input lists and filter for strings
-    original_categories = [x for x in original_categories if x and is_string(x)]
-    new_categories = [x for x in new_categories if x and is_string(x)]
+    # Remove empty strings and non-string objects from input lists
+    original_categories = [x for x in original_categories if isinstance(x, str) and x]
+    new_categories = [x for x in new_categories if isinstance(x, str) and x]
 
     # Iterate through each new category
     for new_cat in new_categories:
@@ -121,7 +121,7 @@ def merge_categories(original_categories, new_categories):
         # Iterate through each original category
         for orig_cat in original_categories:
             # Calculate the similarity score between the two categories
-            similarity_score = fuzz.ratio(str(new_cat).lower(), str(orig_cat).lower())
+            similarity_score = fuzz.ratio(new_cat.lower(), orig_cat.lower())
 
             # If the similarity score is above a threshold (e.g., 80) and higher than the current best,
             # consider them a match
@@ -134,7 +134,6 @@ def merge_categories(original_categories, new_categories):
             mappings[new_cat] = best_orig_cat
     
     return mappings
-
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
     for input_file in input_files:
