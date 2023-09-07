@@ -23,9 +23,9 @@ desired_header_order = ["Date", "Region", "BSC", "Site Name", "Site ID", "2G/3G"
 desired_header_order_mt= ["Site", "TECH", "ID", "Controller", "RBSType", "Region", "nm_tier","EventTime","CeaseTime","MTTR","Duration","Reason Category","Reason Sub-Category","RootCause","DateOfOutage","Vendor","FilledBy","MR_CP","Office","Site Type"]
 
 
-original_headers= {"Reason Category":["BSS", "High_temp", "others", "Power", "TX",""],
+original_headers= {"Reason Category":["BSS", "High_temp", "Others", "Power", "TX",""],
 
-                       "Reason Sub-Category":['BSS_HW','BSS_SW','High_Temp','High_Temp_Dependency','Others_Illegal_Intervention','Others_ROT','Others_Dependency_Illegal Intervention','Others_Unknown Reason','Others_Dependency_Unknown Reason','Others_Wrong_Action','Power_Commercial','Power_Dependency_Commercial','Power_Generator','Power_Dependency_Generator','Power_HW (Cct Breakers, Cables)','Power_Dependency_HW (Cct Breakers, Cables)','Power_Power Criteria','Power_Dependency_Power Criteria','Power_Solar Cell','Power_Dependency_Solar Cell','TX_Bad Performance','TX_Dependency_Bad Performance','TX_HW Failure','TX_Dependency_HW Failure','TX_LOS','TX_Dependency_LOS','TX_Physical Connection','TX_Dependency_Physical Connection','TX_Power Supply','TX_Dependency_Power Supply','TX_SW','TX_Telecom Egypt','TX_Dependency_Telecom Egypt','BSS/License',""],
+                       "Reason Sub-Category":['BSS_HW','BSS_SW','High_Temp','High_Temp_Dependency','Others_Illegal_Intervention','Others_ROT','Others_Dependency_Illegal Intervention','Others_Unknown Reason','Others_Dependency_Unknown Reason','Others_Wrong_Action','Power_Commercial','Power_Dependency_Commercial','Power_Generator','Power_Dependency_Generator','Power_HW (Cct Breakers, Cables)','Power_Dependency_HW (Cct Breakers, Cables)','Power_Power Criteria','Power_Dependency_Power Criteria','Power_Solar Cell','Power_Dependency_Solar Cell','TX_Bad Performance','TX_Dependency_Bad Performance','TX_HW Failure','TX_Dependency_HW Failure','TX_LOS','TX_Dependency_LOS','TX_Physical Connection','TX_Dependency_Physical Connection','TX_Power Supply','TX_Dependency_Power Supply','TX_SW Failure','TX_Telecom Egypt','TX_Dependency_Telecom Egypt','BSS/License',""],
 
                        "Owner":["BSS","FM","GD","ROT","RT","TD","TX","E///","ZTE",""],
                        }
@@ -35,7 +35,7 @@ def apply_cascaded_to_rule(row):
     comment = row["Comment"]
     cas_matches = re.findall(r'cas', comment, re.IGNORECASE)
 
-    if cas_matches:
+    if cas_matches and row["Reason Category"]!="Others":
         match = re.search(r'\d{4}', comment)
         if match:
             site_id_prefix = row["Site ID"][:3]
@@ -57,8 +57,11 @@ def apply_custom_rules(row, custom_rules):
     comment = row["Comment"]
     for keyword, rule in custom_rules.items():
         if keyword.lower() in comment.lower():
-            row["Reason Category"] = rule["Reason Category"]
-            row["Reason Sub-Category"] = rule["Reason Sub-Category"]
+            if rule["Reason Category"]!="":
+                row["Reason Category"] = rule["Reason Category"]
+
+            if rule["Reason Sub-Category"]!="":
+                row["Reason Sub-Category"] = rule["Reason Sub-Category"]
             # Add a print statement here to describe the modification
             print(f"Modified Reason Category in row {row.name}: '{row['Reason Category']}'")
             print(f"Modified Reason Sub-Category in row {row.name}: '{row['Reason Sub-Category']}'")
@@ -67,7 +70,7 @@ def apply_custom_rules(row, custom_rules):
 
 def apply_tcr_logic(row):
     comment = row["Comment"]
-    tcr_match = re.search(r'tcr\s*\d{7}', comment, re.IGNORECASE)
+    tcr_match = re.search(r'tcr\s*\d{5}', comment, re.IGNORECASE)
 
     if pd.notna(row["SLA Status"]):  # Check if "SLA Status" cell is not empty
         if tcr_match:
@@ -133,7 +136,6 @@ def merge_categories(original_categories, new_categories):
 
 
 
-
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
     for input_file in input_files:
@@ -141,8 +143,6 @@ def process_excel_files(input_files,input_files2 ,output_file):
         for header in desired_header_order:
             if header not in data.columns:
                 data[header]=None
-
-
 
         data["Site ID"] = data["SiteCode"]
         data["2G/3G"] = data["Tech"]
