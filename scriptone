@@ -96,6 +96,7 @@ def fixes(data, custom_rules):
     data = data.apply(lambda row: apply_custom_rules(row, custom_rules), axis=1)
     data = data.apply(apply_tcr_logic, axis=1)
     return data
+
 def merge_categories(original_categories, new_categories):
     category_mapping = {}
 
@@ -115,6 +116,10 @@ def merge_categories(original_categories, new_categories):
 
         if matched_category:
             if max_similarity >= 80:  # Adjust the threshold as needed
+                # Remove the additional terms in new_category that match with matched_category
+                new_category_parts = new_category.lower().split()
+                matched_category_parts = matched_category.lower().split()
+                new_category = ' '.join([part for part in new_category_parts if part not in matched_category_parts])
                 category_mapping[new_category] = matched_category
             else:
                 category_mapping[new_category] = new_category
@@ -124,7 +129,6 @@ def merge_categories(original_categories, new_categories):
     category_mapping = {key: value for key, value in category_mapping.items() if key != value}
 
     return category_mapping
-
 
 
 
