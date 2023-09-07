@@ -56,17 +56,21 @@ def apply_cascaded_to_rule(row):
 def apply_custom_rules(row, custom_rules):
     comment = row["Comment"]
     for keyword, rule in custom_rules.items():
-        if keyword.lower() in comment.lower():
-            if rule["Reason Category"]!="":
+        # Compile the regular expression pattern from the keyword
+        pattern = re.compile(keyword, re.IGNORECASE)  # Case-insensitive matching
+        if pattern.search(comment):
+            if rule["Reason Category"] != "":
                 row["Reason Category"] = rule["Reason Category"]
 
-            if rule["Reason Sub-Category"]!="":
+            if rule["Reason Sub-Category"] != "":
                 row["Reason Sub-Category"] = rule["Reason Sub-Category"]
+
             # Add a print statement here to describe the modification
             print(f"Modified Reason Category in row {row.name}: '{row['Reason Category']}'")
             print(f"Modified Reason Sub-Category in row {row.name}: '{row['Reason Sub-Category']}'")
-            break  # Once a keyword is found, we apply the rule and break out of the loop
+            break  # Once a match is found, we apply the rule and break out of the loop
     return row
+
 
 def apply_tcr_logic(row):
     comment = row["Comment"]
