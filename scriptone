@@ -5,7 +5,7 @@ import argparse
 import re
 from datetime import datetime, timedelta
 from fuzzywuzzy import fuzz
-
+import os
 
 custom_rules = {
     r"(HW|SW)": {
@@ -52,8 +52,7 @@ original_headers= {"Reason Category":["BSS", "High_temp", "Others", "Power", "TX
                        "Reason Sub-Category":['BSS_HW','BSS_SW','High_Temp','High_Temp_Dependency','Others_Illegal_Intervention','Others_ROT','Others_Dependency_Illegal Intervention','Others_Unknown Reason','Others_Dependency_Unknown Reason','Others_Wrong_Action','Power_Commercial','Power_Dependency_Commercial','Power_Generator','Power_Dependency_Generator','Power_HW (Cct Breakers, Cables)','Power_Dependency_HW (Cct Breakers, Cables)','Power_Power Criteria','Power_Dependency_Power Criteria','Power_Solar Cell','Power_Dependency_Solar Cell','TX_Bad Performance','TX_Dependency_Bad Performance','TX_HW Failure','TX_Dependency_HW Failure','TX_LOS','TX_Dependency_LOS','TX_Physical Connection','TX_Dependency_Physical Connection','TX_Power Supply','TX_Dependency_Power Supply','TX_SW','TX_Telecom Egypt','TX_Dependency_Telecom Egypt','BSS/License',""],
 
                        "Owner":["BSS","FM","GD","ROT","RT","TD","TX","E///","ZTE",""],
-                       }
-
+                       
 
 def merge_categories(original_categories, new_categories):
     # Initialize a dictionary to store mappings
@@ -299,9 +298,35 @@ def process_excel_files(input_files,input_files2 ,output_file):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process multiple Excel files.")
-    parser.add_argument("-i","--input1", nargs="+", help="List of input Excel files")
-    parser.add_argument("-m","--input2", nargs="+", help="List of input Excel files")
-    parser.add_argument("-o","--output", help="Output Excel file")
+    parser.add_argument("-i", "--input1", nargs="+", help="List of input Excel files for 4G, 3G, and 2G")
+    parser.add_argument("-m", "--input2", nargs="+", help="List of input Excel files not related to 4G, 3G, or 2G")
+    parser.add_argument("-o", "--output", default="Full Ourage Report TEMP Update-2023.xlsx", help="Output Excel file")
     args = parser.parse_args()
 
-    process_excel_files(args.input1,args.input2 ,args.output)
+    # If no input files are provided, list all files in the current directory
+    if not args.input1 and not args.input2:
+        files = os.listdir()
+        input1 = [file for file in files if file.lower().startswith(("4g", "3g", "2g"))]
+        input2 = [file for file in files if not file.lower().startswith(("4g", "3g", "2g"))]
+
+        # Run the script with the identified input files
+        process_excel_files(input1, input2, args.output)
+    else:
+        process_excel_files(args.input1, args.input2, args.output)
+
+    # Rename original files based on the content of the "Region" and "Date" columns within each individual sheet
+    for input_file in input_files:
+        if input_file.lower().startswith(("4g", "3g", "2g")):
+            tech = input_file.split()[0].capitalize()
+
+            # Read the Excel file
+            data = pd.read_excel(input_file)
+
+            # Get the region from the first row of the "Region" column
+            region = data["Region"].iloc[0]
+
+            # Get the date from the first row of the "Date" column
+            date = data["Date"].iloc[0].strftime("%m-%d-%Y")
+
+            new_filename = f"{tech} {region} Outage Report {date}.xlsx"
+            shutil.move(input_file, new_filename)
