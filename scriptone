@@ -106,7 +106,6 @@ def apply_cascaded_to_rule(row):
                     row["Cascaded To"] = site_id_prefix + cascaded_to_digits
 
                 print(f"Modified Cascaded To in row {row.name}: '{row['Cascaded To']}'")
-
     return row
 
 def generator(row):
@@ -181,6 +180,7 @@ def remove_dependency_from_subcategory(row):
 
 def fixes(data, custom_rules):
     data = data.apply(apply_cascaded_to_rule, axis=1)
+    print(data['Cascaded To']) 
     data = data.apply(lambda row: apply_custom_rules(row, custom_rules), axis=1)
     data = data.apply(apply_tcr_logic, axis=1)
     data = data.apply(remove_dependency_from_subcategory, axis=1)
@@ -269,15 +269,6 @@ def process_excel_files(input_files,input_files2 ,output_file):
             combined_data[key] = combined_data[key].str.replace(og,nw)
 
     combined_data=fixes(combined_data,custom_rules)
-
-
-    for key,header in original_headers.items():
-        mcd=merge_categories(header,combined_data[key].unique().tolist())
-        print(combined_data[key].unique().tolist())
-        print(f"\n{key}") 
-        for og,nw in mcd.items():
-            print(f"{og}:{nw}")
-            combined_data[key] = combined_data[key].str.replace(og,nw)
 
     combined_data.to_excel(output_file, index=False)
 
