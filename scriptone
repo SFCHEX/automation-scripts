@@ -291,38 +291,55 @@ def process_excel_files(input_files,input_files2 ,output_file):
     combined_data.apply(corp,axis=1)
 
     combined_data.to_excel(output_file, index=False)
+def rename_files(input_files):
+    for input_file in input_files:
+        if not os.path.exists(input_file):
+            continue
+        
+        try:
+            data = pd.read_excel(input_file)
+            region = data["Region"].iloc[0]
+            
+            # Check if region is Menoufia or Tanta (case-insensitive)
+            if region.lower() in ["menoufia", "tanta"]:
+                # Rename the file as "Menoufia Tanta Outage Summary Report" + date
+                current_date = datetime.now().strftime("%m-%d-%Y")
+                new_file_name = f"Menoufia Tanta Outage Summary Report {current_date}.xlsx"
+                
+                # Rename the file
+                os.rename(input_file, new_file_name)
+                print(f"Renamed '{input_file}' to '{new_file_name}'")
+            else:
+                # Apply original renaming rules for 4G, 2G, 3G, plus region and date
+                region = region.title()  # Capitalize the region name
+                current_date = datetime.now().strftime("%m-%d-%Y")
+                new_file_name = f"{region} Outage Summary Report {current_date}.xlsx"
+                
+                # Rename the file
+                os.rename(input_file, new_file_name)
+                print(f"Renamed '{input_file}' to '{new_file_name}'")
+        
+        except Exception as e:
+            print(f"Error renaming '{input_file}': {str(e)}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process multiple Excel files.")
-    parser.add_argument("-i", "--input1", nargs="+", help="List of input Excel files for 4G, 3G, and 2G")
-    parser.add_argument("-m", "--input2", nargs="+", help="List of input Excel files not related to 4G, 3G, or 2G")
-    parser.add_argument("-o", "--output", default="Full Ourage Report TEMP Update-2023.xlsx", help="Output Excel file")
+    parser.add_argument("-i", "--input1", nargs="+", help="List of input Excel files")
+    parser.add_argument("-m", "--input2", nargs="+", help="List of input Excel files")
+    parser.add_argument("-o", "--output", help="Output Excel file")
     args = parser.parse_args()
 
-    # If no input files are provided, list all files in the current directory
+
     if not args.input1 and not args.input2:
+        rename_files(args.input1 + args.input2)
+
         files = os.listdir()
         input1 = [file for file in files if file.lower().startswith(("4g", "3g", "2g"))]
         input2 = [file for file in files if not file.lower().startswith(("4g", "3g", "2g"))]
 
-        # Run the script with the identified input files
         process_excel_files(input1, input2, args.output)
     else:
         process_excel_files(args.input1, args.input2, args.output)
+        rename_files(args.input1 + args.input2)
 
-    # Rename original files based on the content of the "Region" and "Date" columns within each individual sheet
-    for input_file in input_files:
-        if input_file.lower().startswith(("4g", "3g", "2g")):
-            tech = input_file.split()[0].capitalize()
 
-            # Read the Excel file
-            data = pd.read_excel(input_file)
-
-            # Get the region from the first row of the "Region" column
-            region = data["Region"].iloc[0]
-
-            # Get the date from the first row of the "Date" column
-            date = data["Date"].iloc[0].strftime("%m-%d-%Y")
-
-            new_filename = f"{tech} {region} Outage Report {date}.xlsx"
-            shutil.move(input_file, new_filename)
