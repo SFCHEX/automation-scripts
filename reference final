@@ -1,0 +1,211 @@
+"Final Category
+Adjust (Planned & Access)"
+Power
+Planned
+Access
+Damaged/Stolen
+BSS/TX
+Others
+High_Temp
+Under ROT
+Arish
+
+
+
+Power
+Commercial
+Generator
+Solar Cells
+Sharing
+HW
+Power Meter
+
+
+
+Planned
+TCR - Planned
+
+Access
+Access_Guard Fee
+Access_Guard Others
+Access_Owner Fee
+Access_Owner Others
+Access_Permission
+Access_Health&Safety
+Access_Legal_Problem
+Access_ Portabal Generator
+End_of_Contract
+Access_GD
+
+
+BSS/TX
+Problem in control card / Solved 
+Bss problem / etherloss &Clear
+BSS HW Problem 
+Nokia BSS Problem 
+TX BP Problem BER On Link 
+ TX eaither loss , solved
+cascaded to SIN6203 , Tx Problem , High BER
+Tx Problem , High BER
+BSS HW problem , solved
+cascaded to SIN3608, Tx Problem , High BER
+TX problem , army fiber problem
+B2B Connection Problem
+BSS_HW Problem
+Link Problem due to Bad Weather
+TX HW Failure
+BSS HW Problem
+bss problem / etherloss / clear 
+BSS HW Problem BB Ericsson problem
+BSS HW Problem cells Flapping problem solved
+BSS HW Problem cells Flapping problem
+Power Outage Faulty Batteries // BSS HW Problem
+army fiber problem
+cascaded to SIN3608 , Tx Problem , High BER
+cascaded to SIN3968 , Tx Problem , High BER
+TX Bad Performance
+TX HW Problem EM6F Card Faulty 
+TX Problem LS-line Problem - Access Owner Limited
+cascaded to SIN6420 , Tx Problem , High BER
+cascaded to SIN6114 , Tx Problem , eaither loss , solved
+ Tx Problem , eaither loss , solved
+cascaded to SIN3970 , Tx Problem , High BER
+BSS HW Problem GTMU Problem Duriing PG connection
+TX HW Problem EM6 Card Faulty Changed 
+DUW Ericsson Problem download SW
+TX HW Problem ISV3 Card Faulty Changed
+RCUA Card Problem
+ B2B fiber Cable 
+Power Card Problem
+IF Card Problem
+TX_HW at HUB Site UPP5919
+Link Problem due bad weather
+TX_Bad Performance
+BSS Problem / Problem in control card and clear 
+E1 Problem
+BSS HW Problem Cells Down Solved
+ TX eaither loss 
+TX Problem fro TE Side
+Del4157 B2B Ether cable problem
+BSS Problem , Solved
+Cascaded To SIN6092 , Tx Problem
+Tx Problem
+Tx Problem , Ethernet Loss
+BSS Problem
+TX HW Problem EM6 card Problem
+BSS Problem/ Changing GTMU card 
+BSS Problem / Etherloss &Clear 
+BSS HW Problem cells Flapping problem Changing RRU
+ZTE Link Problem / RMUB Card Problem / changed
+Cascaded UPP5584 TX BP Problem BER On Link 
+BSS Problem / Problem in control card and changed 
+Bad performnace in site due to HW fault
+BSS Problem /etherloss and clear 
+TX Bad Perfoamnce 
+TX Bad Perfoamnce access limited TE
+BSS HW Problem cells down team Change RRU & fiber Cables
+BSS HW Problem DUW power Socket
+BSS HW Problem Ericsson BB Problem
+TX Bad Perfarmance
+ZTE Link Problem
+Link Problem between UPP1449 < > UPP0947
+
+
+Damaged/Stolen
+Generator Stolen Battery 
+Cascaded UPP5853 Generator Stolen Battery 
+ET Generator Stolen
+ET DG Stolen
+
+
+Under ROT
+Under Nokia ROT 
+Rental ROT GEN problem
+under ROT
+Rental ROT Generator problem
+1111-TCR1053433-PLANNED-OK
+1111-TCR1052606-PLANNED-OK
+1111-TCR1050834-PLANNED-OK
+Rental ROT DG Problem  / Stolen Fuel / Access PG due to H&S
+DG Under ROT Problem / Stolen Fuel 
+site under ROT
+BO Action SW upgrade TCR1049970
+1111-TCR999362-PLANNED-OK
+1111-TCR1051632-PLANNED-VIOLATED
+New Site Under ROT
+1111-TCR1057086-PLANNED-OK
+1111-TCR1057164-PLANNED-OK
+1111-TCR1055918-PLANNED-OK
+1111-TCR1052296-PLANNED-VIOLATED
+1111-TCR1057167-PLANNED-OK
+1111-TCR1057782-PLANNED-OK
+TD Action / TCR1048439
+TD Action / TCR1056841
+TD Action / TCR1056833
+TD Action / TCR1056832
+TD Action / TCR1056838
+TD Action / TCR1056839
+TD Action / TCR1054221
+TCR1050902 swap UMPTb2   3G BBU by UMPTb1   ALX3060(((RF Comp EXP)))(((RF Comp EXP)))
+TCR1050898 swap UMPTb2   3G BBU by UMPTb1   ALX3002(((RF Comp EXP)))(((RF Comp EXP)))
+TCR1056808 FTTS Action : ALX3005_01 SW VLAN Redistribution [No ISP] [No FM Attendance] [No ISP Gated] - Cascaded ALX3005 
+TCR1056808 FTTS Action : ALX3005_01 SW VLAN Redistribution [No ISP] [No FM Attendance] [No ISP Gated]
+TCR934608 Roof Isolation for area = 75 m2@ALX3023
+TCR1004742 swap rectifiers with Batteries? by HCR in ALX3622
+Planned TCR1047949
+Planned TCR1049130
+Power Commercial Problem & ROT DG Stopped due to Fuel Shortage and PG Connected
+1111-TCR1058590-PLANNED-OK
+Under Nokia ROT
+TX BP Problem BER On Link 
+1111-TCR1055698-PLANNED-OK
+1111-TCR1059332-PLANNED-OK
+
+
+
+Others
+illegal internvention from guard 
+Owner Make Illegal Intervention 
+Sabotage Problem In Fuel Tank 
+illegal connection from ORG Guard
+illegal connection from Guard
+Sharing VF Owner Make Illegal Connection 
+cas to UPP5919 - Guard Disconnect MCB
+Guard Disconnect MCB
+illegal Connection From VF Guard
+illegal connectin From ORG Guard
+Owner Make Illegal Connection 
+Nokia Site Unknown Reason for down Problem 
+illegal intervention from guard 
+sharing ORG Guard Disconnect MCB
+Sabotage Problem In Transformar 
+Owner Make Illegal Connection
+Sharing VF Owner Make Illegal Connection
+ Owner Make Illegal Connection 
+Others_Unknown Reason
+
+
+High_Temp
+Temperature Problem 
+Board Temperature Unacceptable
+cas to UPP1532 - Temp Problem
+Temp Problem
+cas to UPP5930 - Temp Problem
+Telecom Shelter High TEMP
+Cascaded UPP5896 Temperature Problem 
+Cascaded To SIN6125 , RTN High Tempreture Problem , Solved
+RTN High Tempreture Problem , Solved
+Cascaded UPP5583 Temperature Problem 
+High Temp FAN Problem in BB Ericsson
+
+
+Arish
+arish area ACCESS H&S
+
+
+
+
+
+
+
+
