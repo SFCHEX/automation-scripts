@@ -274,11 +274,18 @@ def process_excel_files(input_files,input_files2 ,output_file):
             combined_data[key] = combined_data[key].str.replace(og,nw)
     
     combined_data=fixes(combined_data,custom_rules)
-    data = data.apply(generator, axis=1)
-    data = data.apply(final, axis=1)
-    data = data.apply(corp, axis=1)
-    data = data.apply(reg, axis=1)
-    combined_data.to_excel(output_file, index=False)
+    generator_equation = "=IF(OR(V1=\"Power_Generator\",V1=\"Power_Dependency_Generator\"), (IF(ISNUMBER(SEARCH(\"Warr\",W1)),\"Warranty\",IF(ISNUMBER(SEARCH(\"over\",W1)),\"Overhauling\",IF(ISNUMBER(SEARCH(\"rent\",W1)),\"Rented\",IF(ISNUMBER(SEARCH(\"sp\",W1)),\"Spare Part\",IF(ISNUMBER(SEARCH(\"Fuel\",W1)),\"Fuel\",IF(ISNUMBER(SEARCH(\"shar\",W1)),\"Sharing\",IF(ISNUMBER(SEARCH(\"main\",W1)),\"Maintenance\",IF(AA1=\"Planned\",\"Planned\",\"Maintenance\"))))))))),IF(TRUE, \"\"))"
+    final_equation = "=IF(AB1=\"Arish\",\"Arish\",IF(LEFT(S1,7)=\"planned\",\"Planned\",IF(U1=\"TX\",\"BSS/TX\",IF(U1=\"BSS\",\"BSS/TX\",IF(U1=\"Power\",\"Power\",IF(U1=\"High_Temp\",\"High_Temp\",IF(V1=\"Others_ROT\",\"Under ROT\",IF(AND(U1=\"Others\",ISNUMBER(SEARCH(\"acc\",W1)))," \
+                 "\"Access\",IF(AND(U1=\"Others\",OR(ISNUMBER(SEARCH(\"Stolen\",W1)),ISNUMBER(SEARCH(\"Damage\",W1)),ISNUMBER(SEARCH(\"Burn\",W1))))),\"Damaged/Stolen\",\"Others\")))))))))"
+    corp_equation = "=VLOOKUP(E1,'D:\Work\[Corpp.xlsx]Sheet1'!$B:$E,4,0)"
+    reg_equation = "=LEFT(E1,3)"
+
+# Apply the equations to the DataFrame
+    df['Generator'] = df['Generator'].apply(lambda x: generator_equation)
+    df['Final'] = df['Final'].apply(lambda x: final_equation)
+    df['Corp'] = df['Corp'].apply(lambda x: corp_equation)
+    df['Reg'] = df['Reg'].apply(lambda x: reg_equation)
+
 
     for key,header in original_headers.items():
         mcd=merge_categories(header,combined_data[key].unique().tolist())
@@ -287,7 +294,9 @@ def process_excel_files(input_files,input_files2 ,output_file):
         for og,nw in mcd.items():
             print(f"{og}:{nw}")
             combined_data[key] = combined_data[key].str.replace(og,nw)
- 
+
+     combined_data.to_excel(output_file, index=False)
+
 
 def get_files_in_current_directory():
     try:
