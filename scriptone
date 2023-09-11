@@ -8,15 +8,39 @@ from fuzzywuzzy import fuzz
 
 
 custom_rules = {
-    "BSS": {
+    r"(HW|SW)": {
         "Reason Category": "BSS",
         "Reason Sub-Category": "BSS_HW"
     },
 
+    r"SW": {
+        "Reason Category": "BSS",
+        "Reason Sub-Category": "BSS_SW"
+    },
+
+    r"HT": {
+        "Reason Category": "High_temp",
+        "Reason Sub-Category": "High_temp"
+    },
+
+
+    r"TX": {
+        "Reason Category": "TX",
+        "Reason Sub-Category": ""
+    }
+
+
+#    r"": {
+#        "Reason Category": "",
+#        "Reason Sub-Category": ""
+#    }
+#
+
+
     # Add more rules here...
 }
 
-desired_header_order = ["Date", "Region", "BSC", "Site Name", "Site ID", "2G/3G", "ID","Site Category","Priority","Technical Area","Site Layer - Qism","Type Of Sharing","Host/Guest","Alarm Occurance Time","Fault Occurance Time","Fault Clearance Time","MTTR","Hybrid Down Time","SLA Status","Site Type", "Reason Category","Reason Sub-Category","Comment", "Owner","Access Type","Cascaded To", "Final", "Office","Corp","Generator","Vendor"]
+desired_header_order = ["Date", "Region", "BSC", "Site Name", "Site ID", "2G/3G", "ID","Site Category","Priority","Technical Area","Site Layer - Qism","Type Of Sharing","Host/Guest","Alarm Occurance Time","Fault Occurance Time","Fault Clearance Time","MTTR","Hybrid Down Time","SLA Status","Site Type", "Reason Category","Reason Sub-Category","Comment", "Owner","Access Type","Cascaded To", "Final", "Office","Corp","Generator","Vendor","Reg", "Most Aff"]
 
 
 
@@ -63,22 +87,87 @@ def merge_categories(original_categories, new_categories):
 
 def apply_cascaded_to_rule(row):
     comment = row["Comment"]
-    cas_matches = re.findall(r'cas', comment, re.IGNORECASE)
+    if isinstance(comment, str):
+        cas_matches = re.findall(r'cas', comment, re.IGNORECASE)
 
-    if cas_matches and row["Reason Category"]!="Others":
-        match = re.search(r'\d{4}', comment)
-        if match:
-            site_id_prefix = row["Site ID"][:3]
-            site_id_postfix = row["Site ID"][-4:]
-            cascaded_to_digits = match.group()
+        if cas_matches and row["Reason Category"]!="Others":
+            match = re.search(r'\d{4}', comment)
+            if match:
+                site_id_prefix = row["Site ID"][:3]
+                site_id_postfix = row["Site ID"][-4:]
+                cascaded_to_digits = match.group()
 
-            if site_id_postfix == cascaded_to_digits:
-                row["Cascaded To"] = ""
+                if site_id_postfix == cascaded_to_digits:
+                    row["Cascaded To"] = ""
+                else:
+                    row["Cascaded To"] = site_id_prefix + cascaded_to_digits
+
+                # Add a print statement here to describe the modification
+#                print(f"Modified Cascaded To in row {row.name}: '{row['Cascaded To']}'")
+
+    return row
+
+
+def final(row):
+    row["Final"] =f'=IF(AB{row.name}="Arish","Arish",IF(LEFT(S{row.name},7)="planned","Planned",IF(U{row.name}="TX","BSS/TX",IF(U{row.name}="BSS","BSS/TX",IF(U{row.name}="Power","Power",IF(U{row.name}="High_Temp","High_Temp",IF(V{row.name}="Others_ROT","Under ROT",IF(AND(U{row.name}="Others",ISNUMBER(SEARCH("acc",W{row.name}))),"Access",IF(AND(U{row.name}="Others",OR(ISNUMBER(SEARCH("Stolen",W{row.name})),ISNUMBER(SEARCH("Damage",W{row.name})),ISNUMBER(SEARCH("Burn",W{row.name})))),"Damaged/Stolen","Others")))))))))'
+    return row
+
+def corp(row):
+    row["Corp"] = f"=VLOOKUP(E{row.name},'D:\Work\[Corpp.xlsx]Sheet1'!$B:$E,4,0)"
+    return row
+
+def reg(row):
+    row["Reg"] = f"=LEFT(E{row.name},3)"
+    print(f"=LEFT(E{row.name},3)")
+    return row
+
+def generator(row):
+    row["Generator"] =f'=IF(OR(V{row.name}="Power_Generator",V{row.name}="Power_Dependency_Generator"), (IF(ISNUMBER(SEARCH("Warr",W{row.name})),"Warranty",IF(ISNUMBER(SEARCH("over",W{row.name})),"Overhauling",IF(ISNUMBER(SEARCH("rent",W{row.name})),"Rented",IF(ISNUMBER(SEARCH("sp",W{row.name})),"Spare Part",IF(ISNUMBER(SEARCH("Fuel",W{row.name})),"Fuel",IF(ISNUMBER(SEARCH("shar",W{row.name})),"Sharing",IF(ISNUMBER(SEARCH("main",W{row.name})),"Maintenance",IF(AA{row.name}="Planned","Planned","Maintenance"))))))))),IF(TRUE, ""))'
+    return row
+
+
+
+def apply_custom_rules(row, custom_rules):
+    comment = row["Comment"]
+    if isinstance(comment, str):
+        for keyword, rule in custom_rules.items():
+            # Compile the regular expression pattern from the keyword
+            pattern = re.compile(keyword, re.IGNORECASE)  # Case-insensitive matching
+            if pattern.search(comment):
+                if rule["Reason Category"] != "":
+                    row["Reason Category"] = rule["Reason Category"]
+
+                if rule["Reason Sub-Category"] != "":
+                    row["Reason Sub-Category"] = rule["Reason Sub-Category"]
+
+                # Add a print statement here to describe the modification
+                print(f"Modified Reason Category in row {row.name}: '{row['Reason Category']}'")
+                print(f"Modified Reason Sub-Category in row {row.name}: '{row['Reason Sub-Category']}'")
+                break  # Once a match is found, we apply the rule and break out of the loop
+    return row
+
+def apply_tcr_logic(row):
+    comment = row["Comment"]
+    if isinstance(comment, str):
+        tcr_match = re.search(r'tcr\s*\d{6,7}', comment, re.IGNORECASE)
+
+        if pd.notna(row["SLA Status"]):  # Check if "SLA Status" cell is not empty
+            if tcr_match:
+                sla_status = row["SLA Status"]
+                if isinstance(sla_status, str):
+                    sla_status_words = sla_status.split()
+                    if sla_status_words and sla_status_words[0].lower() != "planned":
+                        row["SLA Status"] = "Planned " + " ".join(sla_status_words[1:])
+                        # Add a print statement here to describe the modification
+#                        print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
             else:
-                row["Cascaded To"] = site_id_prefix + cascaded_to_digits
-
-            # Add a print statement here to describe the modification
-#            print(f"Modified Cascaded To in row {row.name}: '{row['Cascaded To']}'")
+                sla_status = row["SLA Status"]
+                if isinstance(sla_status, str):
+                    sla_status_words = sla_status.split()
+                    if sla_status_words and sla_status_words[0].lower() != "unplanned":
+                        row["SLA Status"] = "Unplanned " + " ".join(sla_status_words[1:])
+                        # Add a print statement here to describe the modification
+#                        print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
 
     return row
 
@@ -86,56 +175,17 @@ def remove_dependency_from_subcategory(row):
     comment = row["Comment"]
     sub_category = row["Reason Sub-Category"]
 
-    if not re.search(r'cas', comment, re.IGNORECASE):
-        # Remove "Dependency" from the sub-category using regex
-        row["Reason Sub-Category"] = re.sub(r'_?Dependency$', '', sub_category, flags=re.IGNORECASE)
-
-    elif re.search(r'cas', comment, re.IGNORECASE) and not re.search(r'_?Dependency', sub_category, re.IGNORECASE):
-        # Add "Dependency" to the sub-category using regex
-        row["Reason Sub-Category"] = f"{sub_category}_Dependency"
-
+    if isinstance(comment, str):
+        if not re.search(r'cas', comment, re.IGNORECASE):
+            # Remove "Dependency" from the sub-category using regex
+            row["Reason Sub-Category"] = re.sub(r'_?Dependency$', '', sub_category, flags=re.IGNORECASE)
+    
+        elif re.search(r'cas', comment, re.IGNORECASE) and not re.search(r'_?Dependency', sub_category, re.IGNORECASE):
+            # Add "Dependency" to the sub-category using regex
+            row["Reason Sub-Category"] = f"{sub_category}_Dependency"
+    
     return row
 
-
-
-def apply_custom_rules(row, custom_rules):
-    comment = row["Comment"]
-    for keyword, rule in custom_rules.items():
-        if keyword.lower() in comment.lower():
-            if rule["Reason Category"]!="":
-                row["Reason Category"] = rule["Reason Category"]
-
-            if rule["Reason Sub-Category"]!="":
-                row["Reason Sub-Category"] = rule["Reason Sub-Category"]
-            # Add a print statement here to describe the modification
-#            print(f"Modified Reason Category in row {row.name}: '{row['Reason Category']}'")
-#            print(f"Modified Reason Sub-Category in row {row.name}: '{row['Reason Sub-Category']}'")
-            break  # Once a keyword is found, we apply the rule and break out of the loop
-    return row
-
-def apply_tcr_logic(row):
-    comment = row["Comment"]
-    tcr_match = re.search(r'tcr\s*\d{6,7}', comment, re.IGNORECASE)
-
-    if pd.notna(row["SLA Status"]):  # Check if "SLA Status" cell is not empty
-        if tcr_match:
-            sla_status = row["SLA Status"]
-            if isinstance(sla_status, str):
-                sla_status_words = sla_status.split()
-                if sla_status_words and sla_status_words[0].lower() != "planned":
-                    row["SLA Status"] = "Planned " + " ".join(sla_status_words[1:])
-                    # Add a print statement here to describe the modification
-#                    print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
-        else:
-            sla_status = row["SLA Status"]
-            if isinstance(sla_status, str):
-                sla_status_words = sla_status.split()
-                if sla_status_words and sla_status_words[0].lower() != "unplanned":
-                    row["SLA Status"] = "Unplanned " + " ".join(sla_status_words[1:])
-                    # Add a print statement here to describe the modification
-#                    print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
-
-    return row
 
 
 
@@ -144,8 +194,8 @@ def fixes(data, custom_rules):
     data = data.apply(lambda row: apply_custom_rules(row, custom_rules), axis=1)
     data = data.apply(apply_tcr_logic, axis=1)
     data = data.apply(remove_dependency_from_subcategory, axis=1)
-
     return data
+
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
     for input_file in input_files:
@@ -215,7 +265,7 @@ def process_excel_files(input_files,input_files2 ,output_file):
 
 
 
-
+    print(f"{combined_data.shape}{combined_data_mt.shape}")
     combined_data = pd.concat([combined_data, combined_data_mt])
     combined_data["Date"]=combined_data["Date"].apply(lambda x: x.strftime("%m-%d-%Y"))
     combined_data=combined_data[desired_header_order]
@@ -238,6 +288,11 @@ def process_excel_files(input_files,input_files2 ,output_file):
         for og,nw in mcd.items():
             print(f"{og}:{nw}")
             combined_data[key] = combined_data[key].str.replace(og,nw)
+
+    combined_data.apply(generator,axis=1)
+    combined_data.apply(final,axis=1)
+    combined_data.apply(reg,axis=1)
+    combined_data.apply(corp,axis=1)
 
 
     combined_data.to_excel(output_file, index=False)
