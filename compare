@@ -1,34 +1,19 @@
-import pandas as pd
-import sys
+def generator(row):
+    equation = 'IF(OR(V{0}="Power_Generator",V{0}="Power_Dependency_Generator"), (IF(ISNUMBER(SEARCH("Warr",W{0})),"Warranty",IF(ISNUMBER(SEARCH("over",W{0})),"Overhauling",IF(ISNUMBER(SEARCH("rent",W{0})),"Rented",IF(ISNUMBER(SEARCH("sp",W{0})),"Spare Part",IF(ISNUMBER(SEARCH("Fuel",W{0})),"Fuel",IF(ISNUMBER(SEARCH("shar",W{0})),"Sharing",IF(ISNUMBER(SEARCH("main",W{0})),"Maintenance",IF(AA{0}="Planned","Planned","Maintenance"))))))))),IF(TRUE, ""))'
+    row["Generator"] = equation.format(row.name)
+    return row
 
-def compare_excel_files(file1, file2):
-    try:
-        df1 = pd.read_excel(file1, engine='openpyxl')
-        df2 = pd.read_excel(file2, engine='openpyxl')
-    except Exception as e:
-        print(f"Error reading files: {e}")
-        return
+def final(row):
+    equation = 'IF(AB{0}="Arish","Arish",IF(LEFT(S{0},7)="planned","Planned",IF(U{0}="TX","BSS/TX",IF(U{0}="BSS","BSS/TX",IF(U{0}="Power","Power",IF(U{0}="High_Temp","High_Temp",IF(V{0}="Others_ROT","Under ROT",IF(AND(U{0}="Others",ISNUMBER(SEARCH("acc",W{0}))), "Access",IF(AND(U{0}="Others",OR(ISNUMBER(SEARCH("Stolen",W{0})),ISNUMBER(SEARCH("Damage",W{0})),ISNUMBER(SEARCH("Burn",W{0})))), "Damaged/Stolen", "Others")))))))))'
+    row["Final"] = equation.format(row.name)
+    return row
 
-    differences = (df1 != df2)
-    rows_with_differences = differences.any(axis=1)
+def corp(row):
+    equation = '=VLOOKUP(E{0},"D:\Work\[Corpp.xlsx]Sheet1"!$B:$E,4,0)'
+    row["Corp"] = equation.format(row.name)
+    return row
 
-    if rows_with_differences.any():
-        print("Differences found:")
-        for index, row in df1[rows_with_differences].iterrows():
-            for col in df1.columns:
-                val1 = row[col]
-                val2 = df2.at[index, col]
-                if val1 != val2:
-                    print(f"In row {index + 2}, header {col} for sheet 1 says '{val1}' while sheet 2 says '{val2}'.")
-    else:
-        print("No differences found.")
-
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python excel_compare.py <file1.xlsx> <file2.xlsx>")
-        sys.exit(1)
-
-    file1 = sys.argv[1]
-    file2 = sys.argv[2]
-
-    compare_excel_files(file1, file2)
+def reg(row):
+    equation = '=LEFT(E{0},3)'
+    row["Reg"] = equation.format(row.name)
+    return row
