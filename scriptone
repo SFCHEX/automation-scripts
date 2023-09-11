@@ -280,13 +280,13 @@ def process_excel_files(input_files,input_files2 ,output_file):
     combined_data.apply(corp,axis=1)
     combined_data.to_excel(output_file, index=False)
 
-
-def get_files_in_directory(directory_path):
+def get_files_in_current_directory():
     try:
-        files = os.listdir(directory_path)
+        current_directory = os.getcwd()
+        files = os.listdir(current_directory)
         return files
     except Exception as e:
-        print(f"Error getting files in directory: {str(e)}")
+        print(f"Error getting files in current directory: {str(e)}")
         return []
 
 # Example usage:
