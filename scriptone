@@ -187,6 +187,51 @@ def fixes(data, custom_rules):
     data = data.apply(remove_dependency_from_subcategory, axis=1)
     return data
 
+def Generator(row):
+    comment = row["Comment"]
+    if isinstance(comment, str):
+        rules=[
+        ["Rental",r"REN"]
+        ["Sharing",r"Shar"],
+        ["Spare Part",r"SP"],
+        ["Overhauling",r"OVERH"],
+        ["Fuel Problem",r"SHORTAGE"],
+        ["Stolen fuel",r"STOLEN"],
+        ["Warranty ",r"war"],
+        ["TECH PROBLEM",r"RATOR|TCR|REN|SOLAR|ACCESS|OUTAGE|ATS|TNT|DG|GEN"],
+        ]
+
+        for expression in rules:
+            if re.search(expression[1], comment, re.IGNORECASE):
+                row["Generator"]=expression[0]
+                break
+
+        print(f"Modified Cascaded To in row {row.name}: '{row['Generator']}'")
+    return row
+
+def Final(row):
+    comment = row["Comment"]
+    if isinstance(comment, str):
+        rules=[
+        ["ARISH",r"ARISH"],
+        ["OTHERS",r"ILLEGAL|SABOTAGE|GUARD|UNKNOWN"],
+        ["DAMAGED/STOLEN",r"DAMAGED|STOLEN"],
+        ["PLANNED",r"PLANNED"],
+        ["POWER",r"COMMERCIAL|GENERATOR|SOLAR|SHARING|POWER"],
+        ["ACCESS",r"ACCESS|CONTRACT"],
+        ["HIGH_TEMP",r"TEMP"],
+        ["UNDER ROT",r"ROT|TD|TCR"],
+        ["BSS/TX",r"BSS|TX|LINK|CARD|FIBER|CABLE|SW|CONNECTION|HW|E1"]
+        ]
+
+        for expression in rules:
+            if re.search(expression[1], comment, re.IGNORECASE):
+                row["Final"]=expression[0]
+                break
+
+        print(f"Modified Cascaded To in row {row.name}: '{row['Final']}'")
+    return row
+
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
     for input_file in input_files:
@@ -278,6 +323,9 @@ def process_excel_files(input_files,input_files2 ,output_file):
         for og,nw in mcd.items():
             print(f"{og}:{nw}")
             combined_data[key] = combined_data[key].str.replace(og,nw)
+
+    combined_data= combined_data.apply(Final, axis=1)
+    combined_data= combined_data.apply(Generator, axis=1)
 
     combined_data.to_excel(output_file, index=False)
 
