@@ -104,8 +104,6 @@ def apply_cascaded_to_rule(row):
 
     return row
 
-
-
 def generator(row):
     row["Generator"] = "=IF(OR(V{0}=\"Power_Generator\",V{0}=\"Power_Dependency_Generator\"), (IF(ISNUMBER(SEARCH(\"Warr\",W{0})),\"Warranty\",IF(ISNUMBER(SEARCH(\"over\",W{0})),\"Overhauling\",IF(ISNUMBER(SEARCH(\"rent\",W{0})),\"Rented\",IF(ISNUMBER(SEARCH(\"sp\",W{0})),\"Spare Part\",IF(ISNUMBER(SEARCH(\"Fuel\",W{0})),\"Fuel\",IF(ISNUMBER(SEARCH(\"shar\",W{0})),\"Sharing\",IF(ISNUMBER(SEARCH(\"main\",W{0})),\"Maintenance\",IF(AA{0}=\"Planned\",\"Planned\",\"Maintenance\"))))))))),IF(TRUE, \"\"))".format(row.name)
     return row
@@ -145,7 +143,7 @@ def apply_custom_rules(row, custom_rules):
 def apply_tcr_logic(row):
     comment = row["Comment"]
     if isinstance(comment, str):
-        tcr_match = re.search(r'tcr\s*\d{6,7}', comment, re.IGNORECASE)
+        tcr_match = re.search(r'tcr', comment, re.IGNORECASE)
 
         if pd.notna(row["SLA Status"]):  # Check if "SLA Status" cell is not empty
             if tcr_match:
@@ -156,15 +154,6 @@ def apply_tcr_logic(row):
                         row["SLA Status"] = "Planned " + " ".join(sla_status_words[1:])
                         # Add a print statement here to describe the modification
 #                        print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
-            else:
-                sla_status = row["SLA Status"]
-                if isinstance(sla_status, str):
-                    sla_status_words = sla_status.split()
-                    if sla_status_words and sla_status_words[0].lower() != "unplanned":
-                        row["SLA Status"] = "Unplanned " + " ".join(sla_status_words[1:])
-                        # Add a print statement here to describe the modification
-#                        print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
-
     return row
 
 def remove_dependency_from_subcategory(row):
@@ -289,8 +278,9 @@ def process_excel_files(input_files,input_files2 ,output_file):
     combined_data.apply(final,axis=1)
     combined_data.apply(reg,axis=1)
     combined_data.apply(corp,axis=1)
-
     combined_data.to_excel(output_file, index=False)
+
+
 def rename_files(input_files):
     for input_file in input_files:
         if not os.path.exists(input_file):
@@ -341,5 +331,3 @@ if __name__ == "__main__":
     else:
         process_excel_files(args.input1, args.input2, args.output)
         rename_files(args.input1 + args.input2)
-
-
