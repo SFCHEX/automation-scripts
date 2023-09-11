@@ -92,13 +92,12 @@ def apply_cascaded_to_rule(row):
     if isinstance(comment, str):
         cas_matches = re.findall(r'cas', comment, re.IGNORECASE)
 
-        if cas_matches and row["Reason Category"] != "Others":
-            match = re.search(r'\d{1,4}', comment)  # Changed to \d{1,4} to match 1 to 4 digits
+        if cas_matches and row["Reason Category"]!="Others":
+            match = re.search(r'\d{4}', comment)
             if match:
                 site_id_prefix = row["Site ID"][:3]
                 site_id_postfix = row["Site ID"][-4:]
                 cascaded_to_digits = match.group()
-                cascaded_to_digits = cascaded_to_digits.zfill(4)  # Ensure at least 4 digits with leading zeros
 
                 if site_id_postfix == cascaded_to_digits:
                     row["Cascaded To"] = ""
@@ -106,7 +105,7 @@ def apply_cascaded_to_rule(row):
                     row["Cascaded To"] = site_id_prefix + cascaded_to_digits
 
                 # Add a print statement here to describe the modification
-                # print(f"Modified Cascaded To in row {row.name}: '{row['Cascaded To']}'")
+#                print(f"Modified Cascaded To in row {row.name}: '{row['Cascaded To']}'")
 
     return row
 
