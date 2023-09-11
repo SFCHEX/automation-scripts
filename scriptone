@@ -87,19 +87,26 @@ def merge_categories(original_categories, new_categories):
     mappings={key: value for key,value in mappings.items() if key!=value and key!=""}
     return mappings
 
-
 def apply_cascaded_to_rule(row):
     comment = row["Comment"]
-    if isinstance(comment, str) and "cas" in comment.lower():
-        cas_matches = re.findall(r'cas (\d{1,4})', comment, re.IGNORECASE)  # Find numeric digits with 1 to 4 characters
+    if isinstance(comment, str):
+        cas_matches = re.findall(r'cas', comment, re.IGNORECASE)
 
         if cas_matches and row["Reason Category"] != "Others":
-            for match in cas_matches:
-                cascaded_to_digits = match.zfill(4)  # Add leading zeros to ensure a total of 4 digits
-                row["Cascaded To"] = row["Cascaded To"].replace(match, cascaded_to_digits)
+            match = re.search(r'\d{1,4}', comment)  # Changed to \d{1,4} to match 1 to 4 digits
+            if match:
+                site_id_prefix = row["Site ID"][:3]
+                site_id_postfix = row["Site ID"][-4:]
+                cascaded_to_digits = match.group()
+                cascaded_to_digits = cascaded_to_digits.zfill(4)  # Ensure at least 4 digits with leading zeros
+
+                if site_id_postfix == cascaded_to_digits:
+                    row["Cascaded To"] = ""
+                else:
+                    row["Cascaded To"] = site_id_prefix + cascaded_to_digits
 
                 # Add a print statement here to describe the modification
-                print(f"Modified Cascaded To in row {row.name}: '{row['Cascaded To']}'")
+                # print(f"Modified Cascaded To in row {row.name}: '{row['Cascaded To']}'")
 
     return row
 
