@@ -159,27 +159,6 @@ def remove_dependency_from_subcategory(row):
     return row
 
 
-def generator(row):
-    equation = 'IF(OR(V{0}="Power_Generator",V{0}="Power_Dependency_Generator"), (IF(ISNUMBER(SEARCH("Warr",W{0})),"Warranty",IF(ISNUMBER(SEARCH("over",W{0})),"Overhauling",IF(ISNUMBER(SEARCH("rent",W{0})),"Rented",IF(ISNUMBER(SEARCH("sp",W{0})),"Spare Part",IF(ISNUMBER(SEARCH("Fuel",W{0})),"Fuel",IF(ISNUMBER(SEARCH("shar",W{0})),"Sharing",IF(ISNUMBER(SEARCH("main",W{0})),"Maintenance",IF(AA{0}="Planned","Planned","Maintenance"))))))))),IF(TRUE, ""))'
-    row["Generator"] = equation.format(row.name)
-    return row
-
-def final(row):
-    equation = 'IF(AB{0}="Arish","Arish",IF(LEFT(S{0},7)="planned","Planned",IF(U{0}="TX","BSS/TX",IF(U{0}="BSS","BSS/TX",IF(U{0}="Power","Power",IF(U{0}="High_Temp","High_Temp",IF(V{0}="Others_ROT","Under ROT",IF(AND(U{0}="Others",ISNUMBER(SEARCH("acc",W{0}))), "Access",IF(AND(U{0}="Others",OR(ISNUMBER(SEARCH("Stolen",W{0})),ISNUMBER(SEARCH("Damage",W{0})),ISNUMBER(SEARCH("Burn",W{0})))), "Damaged/Stolen", "Others")))))))))'
-    row["Final"] = equation.format(row.name)
-    return row
-
-def corp(row):
-    equation = '=VLOOKUP(E{0},"D:\Work\[Corpp.xlsx]Sheet1"!$B:$E,4,0)'
-    row["Corp"] = equation.format(row.name)
-    return row
-
-def reg(row):
-    equation = '=LEFT(E{0},3)'
-    row["Reg"] = equation.format(row.name)
-    return row
-
-
 def fixes(data, custom_rules):
     data = data.apply(apply_cascaded_to_rule, axis=1)
 #   data = data.apply(lambda row: apply_custom_rules(row, custom_rules), axis=1)
