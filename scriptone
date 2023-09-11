@@ -1,4 +1,3 @@
-
 import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
@@ -284,11 +283,13 @@ def get_files_in_current_directory():
     try:
         current_directory = os.getcwd()
         files = os.listdir(current_directory)
-        return files
+        return [x for x in files if x.endswith(".xlsx") and "Full" not in x]
     except Exception as e:
         print(f"Error getting files in current directory: {str(e)}")
         return []
+
 def rename_files(input_files):
+    i=0
     for input_file in input_files:
         if not os.path.exists(input_file):
             continue
@@ -296,15 +297,16 @@ def rename_files(input_files):
         try:
             data = pd.read_excel(input_file)
             region = data["Region"].iloc[0].title()  # Capitalize the region name
-            tech = data["Tech"].iloc[0]
             
             # Check if region is Menoufia or Tanta (case-insensitive)
             if region.lower() in ["menoufia", "tanta"]:
+                i+=1
                 # Apply secondary renaming rules for Menoufia or Tanta
                 region = region.title()  # Ensure region name is capitalized
                 current_date = datetime.now().strftime("%m-%d-%Y")
-                new_file_name = f"{region} Outage Summary Report {current_date}.xlsx"
+                new_file_name = f"Menoufia and Tanta {i} Outage Summary Report {current_date}.xlsx"
             else:
+                tech = data["Tech"].iloc[0]
                 # Check if tech is 4G, 3G, or 2G (case-insensitive)
                 if tech.lower() in ["4g", "3g", "2g"]:
                     tech = tech.upper()  # Ensure tech is uppercase
@@ -332,13 +334,13 @@ if __name__ == "__main__":
 
 
     if not args.input1 and not args.input2:
-        rename_files(args.input1 + args.input2)
-
-        files = os.listdir()
+        rename_files(get_files_in_current_directory())
+        files=get_files_in_current_directory()
         input1 = [file for file in files if file.lower().startswith(("4g", "3g", "2g"))]
         input2 = [file for file in files if not file.lower().startswith(("4g", "3g", "2g"))]
 
-        process_excel_files(input1, input2, args.output)
+        output=f'Full Outage Report Update {datetime.now().strftime("%m-%d-%Y")}.xlsx'
+        process_excel_files(input1, input2, output)
     else:
         process_excel_files(args.input1, args.input2, args.output)
         rename_files(args.input1 + args.input2)
