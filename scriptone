@@ -102,7 +102,8 @@ def apply_cascaded_to_rule(row):
 
                 if site_id_postfix == cascaded_to_digits:
                     row["Cascaded To"] = ""
-                    row["Comment"]=re.sub(r'\bcas\b|\bto\b|\d{3,4}','',row["Comment"])
+                    pattern = r"(?i)(cascaded|cas|dependency|to|\b\d{3,4}\b)"
+                    row['Comment']= re.sub(pattern, "", row['Comment'])
                     row["Reason Sub-Category"]=row["Reason Sub-Category"].replace("Dependancy","")
 
                 else:
@@ -182,6 +183,8 @@ def MostAff(row):
         
 
         print(f"Modified Most Aff in row {row.name}: '{row['Most Aff']}'")
+    else:
+        row['Most Aff']=row['Site ID']
     return row
 
 def DropEmptyComments(df):
@@ -198,24 +201,31 @@ def Reg(row):
 
 def Generator(row):
     comment = row["Comment"]
-    if isinstance(comment, str) and (row['Reason Sub-Category'] in ['Power_Generator','Power_Dependency_Generator'] or (row['Reason Category'] =="Others" and re.search("SHORTAGE", comment, re.IGNORECASE) )):
-        rules=[
-        ["Rental",r"REN"],
-        ["Sharing",r"Shar"],
-        ["Spare Part",r"SP"],
-        ["Overhauling",r"OVERH|OH"],
-        ["Fuel Problem",r"SHORTAGE"],
-        ["Stolen fuel",r"STOLEN"],
-        ["Warranty ",r"war"],
-        ["Tech Problem",r"RATOR|TCR|REN|SOLAR|ACCESS|OUTAGE|ATS|TNT|DG|GEN"]
-        ]
+    if isinstance(comment, str):
+        if re.search(r'COMM|CRISIS|(?:^|\s)EC', comment, re.IGNORECASE):
+            if re.search(r'CAS', comment, re.IGNORECASE):
+                row["Reason Sub-Category"]='Power_Dependency_Commercial'
+            else:
+                row["Reason Sub-Category"]='Power_Commercial'
 
-        for expression in rules:
-            if re.search(expression[1], comment, re.IGNORECASE):
-                row["Generator"]=expression[0]
-                break
+        if row['Reason Sub-Category'] in ['Power_Generator','Power_Dependency_Generator'] :
+            rules=[
+            ["Stolen fuel",r"STOLEN F"],
+            ["Rental",r"REN"],
+            ["Sharing",r"Shar"],
+            ["Spare Part",r"SP"],
+            ["Overhauling",r"OVERH|OH"],
+            ["Fuel Problem",r"SHORT"],
+            ["Warranty ",r"war"],
+            ["Tech Problem",r"RATOR|TCR|REN|SOLAR|ACCESS|OUTAGE|ATS|TNT|DG|GEN"]
+            ]
 
-        print(f"Modified Generator in row {row.name}: '{row['Generator']}'")
+            for expression in rules:
+                if re.search(expression[1], comment, re.IGNORECASE):
+                    row["Generator"]=expression[0]
+                    break
+
+            print(f"Modified Generator in row {row.name}: '{row['Generator']}'")
     return row
 
 def Final(row):
@@ -226,10 +236,10 @@ def Final(row):
         ["OTHERS",r"ILLEGAL|SABOTAGE|GUARD|UNKNOWN"],
         ["DAMAGED/STOLEN",r"DAMAGED|STOLEN"],
         ["PLANNED",r"PLANNED"],
-        ["ACCESS",r"ACCESS|CONTRACT"],
-        ["POWER",r"PHASE|\sEC|DG|HAYA|C\.?B|COMMERCIAL|COM|TRANS|GENERATOR|SOLAR|SHARING|POWER|GEN|RATOR|OUTAGE"],
+        ["ACCESS",r"ACES|ACCES|CONTRACT"],
+        ["POWER",r"PHASE|(?:^|\s|.)EC|DG|RECT|HAYA|C\.?B|COMMERCIAL|COM|TRANS\S|TRANSFO|GENERATOR|SOLAR|SHARING|POWER|GEN|RATOR|OUTAGE"],
         ["HIGH_TEMP",r"TEMP"],
-        ["BSS/TX",r"PERF|FLAP|INTER|REC|BSS|TX|LINK|CARD|FIBER|CABLE|SW|CONNECTION|HW|E1|SW"],
+        ["BSS/TX",r"RTN|PERF|FLAP|INTER|BSS|TX|LINK|CARD|FIBER|CABLE|SW|CONNECTION|HW|E1|SW"],
         ["UNDER ROT",r"ROT(?:\s|$)|TD|TCR"]
         ]
 
@@ -327,8 +337,8 @@ def process_excel_files(input_files,input_files2 ,output_file):
     combined_data=fixes(combined_data,custom_rules)
     combined_data= combined_data.apply(Final, axis=1)
     combined_data= combined_data.apply(Generator, axis=1)
-    combined_data= combined_data.apply(MostAff, axis=1)
     combined_data= combined_data.apply(Reg, axis=1)
+    combined_data= combined_data.apply(MostAff, axis=1)
 
     for key,header in original_headers.items():
         mcd=merge_categories(header,combined_data[key].unique().tolist())
