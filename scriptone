@@ -208,9 +208,9 @@ def Generator(row):
             else:
                 row["Reason Sub-Category"]='Power_Commercial'
 
-        if row['Reason Sub-Category'] in ['Power_Generator','Power_Dependency_Generator'] :
+        if row['Reason Sub-Category'] in ['Power_Generator','Power_Dependency_Generator','Others_Illegal_Intervention'] :
             rules=[
-            ["Stolen fuel",r"STOLEN F"],
+            ["Stolen Fuel",r"STOLEN\sF|FUEL\sSTOLEN|F(?:\w*)\sSTOLEN"],
             ["Rental",r"REN"],
             ["Sharing",r"Shar"],
             ["Spare Part",r"SP"],
@@ -338,7 +338,6 @@ def process_excel_files(input_files,input_files2 ,output_file):
     combined_data= combined_data.apply(Final, axis=1)
     combined_data= combined_data.apply(Generator, axis=1)
     combined_data= combined_data.apply(Reg, axis=1)
-    combined_data= combined_data.apply(MostAff, axis=1)
 
     for key,header in original_headers.items():
         mcd=merge_categories(header,combined_data[key].unique().tolist())
@@ -349,6 +348,7 @@ def process_excel_files(input_files,input_files2 ,output_file):
             combined_data[key] = combined_data[key].str.replace(og,nw)
 
 
+    combined_data= combined_data.apply(MostAff, axis=1)
     combined_data.to_excel(output_file, index=False)
 
 def get_files_in_current_directory():
