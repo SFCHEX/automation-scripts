@@ -8,16 +8,16 @@ powerSheetMasterName=""
 siteDataMasterName=""
 
 def loadSheets(avaSheetName,powerSheetName):
-    avaSheet=pd.read_excel(avaSheetName,"")
-    powerSheet=pd.read_excel(powerSheetName,"")
+    avaSheet=pd.read_excel(avaSheetName,"Sheet1")
+    powerSheet=pd.read_excel(powerSheetName,"Sheet1")
     return avaSheet, powerSheet
 
 def updateNetworkAva(avaSheetName):
     try:
         avaWBMaster=openpyxl.load_workbook(avaSheetMasterName)
-        avaSheetMaster=avaWBMaster['']
+        avaSheetMaster=avaWBMaster['Sheet2']
         avaWBSheet=openpyxl.load_workbook(avaSheetName)
-        avaSheet=avaWBSheet['']
+        avaSheet=avaWBSheet['Sheet1']
         for row in avaSheet.iter_rows(min_row=2, values_only=True):
                 avaSheetMaster.append(row)
         avaWBMaster.save(avaSheetMasterName)
@@ -29,9 +29,9 @@ def updateNetworkAva(avaSheetName):
 def updatePowerAlarm(powerSheetName):
     try:
         powerWBMaster=openpyxl.load_workbook(powerSheetMasterName)
-        powerSheetMaster=powerWBMaster['']
+        powerSheetMaster=powerWBMaster['Sheet1']
         powerWBSheet=openpyxl.load_workbook(powerSheetName)
-        powerSheet=powerWBSheet['']
+        powerSheet=powerWBSheet['Sheet1']
         for row in powerSheet.iter_rows(min_row=2, values_only=True):
                 powerSheetMaster.append(row)
         powerWBMaster.save(powerSheetMasterName)
@@ -41,21 +41,13 @@ def updatePowerAlarm(powerSheetName):
 
 
 def getAVA(avaSheet):
-    avaSheet=avaSheet[avaSheet[]=="yes"]
-    AVA = pd.pivot_table(avaSheet, values='Site ID', index='', columns='ava', aggfunc='avg')
+    powerSheet=powerSheet[powerSheet["TECH"] is in ["2g","3g","3G","2G"]]
+    AVA = pd.pivot_table(avaSheet, values=r'AVA (%)', index='SITE',aggfunc='avg')
     blank_columns = pd.DataFrame('', index=range(len(avaSheet)), columns=[''] * 3)  # Insert 3 blank columns
     avaSheet=pd.concat([avaSheet,blank_columns,avaSheet],axis=1)
       
     return AVA
 
-def getPADPAR(powerSheet):
-    powerSheet=powerSheet[powerSheet[] is in ["2g","3g"]]
-    PAD = pd.pivot_table(powerSheet, values='Site ID', index='', columns='MTTR', aggfunc='sum')
-    PAR = pd.pivot_table(powerSheet, values='Site ID', index='', columns='MTTR', aggfunc='count')
-    blank_columns = pd.DataFrame('', index=range(len(powerSheet)), columns=[''] * 3)  # Insert 3 blank columns
-    powerSheet=pd.concat([powerSheet,blank_columns,PAD,blank_columns,PAR],axis=1)
- 
-    return PAD,PAR
 
 def rename_duplicate_columns(df):
  col_counts = {}
@@ -69,6 +61,17 @@ def rename_duplicate_columns(df):
          new_columns.append(col)
  df.columns = new_columns
  return df
+
+def getPADPAR(powerSheet):
+    powerSheet=powerSheet[avaSheet["ALARM"] is in ["Yes","YES","yes"]]
+    powerSheet=rename_duplicate_columns(powerSheet)
+    PAD = pd.pivot_table(powerSheet, values='MTTR2', index='Site Code', aggfunc='sum')
+    PAR = pd.pivot_table(powerSheet, values='MTTR2', index='Site Code', aggfunc='count')
+    blank_columns = pd.DataFrame('', index=range(len(powerSheet)), columns=[''] * 3)  # Insert 3 blank columns
+    powerSheet=pd.concat([powerSheet,blank_columns,PAD,blank_columns,PAR],axis=1)
+ 
+    return PAD,PAR
+
 
 def select_and_replace_column(df, col_name, type_index, new_column_data):
     type_row = df.iloc[2]
