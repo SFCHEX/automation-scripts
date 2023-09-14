@@ -57,6 +57,18 @@ def getPADPAR(powerSheet):
  
     return PAD,PAR
 
+def rename_duplicate_columns(df):
+ col_counts = {}
+ new_columns = []
+ for col in df.columns:
+     if col in col_counts:
+         col_counts[col] += 1
+         new_columns.append(f"{col}{col_counts[col]}")
+     else:
+         col_counts[col] = 0
+         new_columns.append(col)
+ df.columns = new_columns
+ return df
 
 def select_and_replace_column(df, col_name, type_index, new_column_data):
     type_row = df.iloc[2]
