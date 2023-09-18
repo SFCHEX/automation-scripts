@@ -1,5 +1,4 @@
-
-def write_pivot_to_xlsb(row1_values, date_str, pivot_table_ava, pivot_table_pad, pivot_table_par, xlsb_file_path):
+def write_pivot_to_xlsb(pivot_table_ava, pivot_table_pad, pivot_table_par, date_str, xlsb_file_path):
     with pyxlsb.open_workbook(xlsb_file_path) as wb:
         section_data = {}
         for sheet in wb.sheets:
@@ -14,7 +13,7 @@ def write_pivot_to_xlsb(row1_values, date_str, pivot_table_ava, pivot_table_pad,
         writer = pd.ExcelWriter(xlsb_file_path, engine='openpyxl')
         writer.book = load_workbook(writer.path)
         
-        for row1_value, pivot_table in zip(row1_values, [pivot_table_ava, pivot_table_pad, pivot_table_par]):
+        for row1_value, pivot_table in zip(['AVA', 'PAD', 'PAR'], [pivot_table_ava, pivot_table_pad, pivot_table_par]):
             if row1_value in section_data:
                 section_df = section_data[row1_value]
                 date_col_idx = section_df.columns.get_loc(date_str)
