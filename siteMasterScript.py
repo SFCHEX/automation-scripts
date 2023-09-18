@@ -20,6 +20,11 @@ def updateSiteData(date_str, pivot_table_ava, pivot_table_pad, pivot_table_par, 
     section_data_pad = pd.DataFrame(data_pad[2:], columns=data_pad[1])
     section_data_par = pd.DataFrame(data_par[2:], columns=data_par[1])
 
+    # Ensure that the 'SITE ID' values in the pivot tables match the XLSB file
+    pivot_table_ava = pivot_table_ava[pivot_table_ava['SITE ID'].isin(section_data_ava['SITE ID'])]
+    pivot_table_pad = pivot_table_pad[pivot_table_pad['SITE ID'].isin(section_data_pad['SITE ID'])]
+    pivot_table_par = pivot_table_par[pivot_table_par['SITE ID'].isin(section_data_par['SITE ID'])]
+
     # Update the Data column for the specified date in each section
     section_data_ava[date_str] = pivot_table_ava.set_index('SITE ID')['Data']
     section_data_pad[date_str] = pivot_table_pad.set_index('SITE ID')['Data']
