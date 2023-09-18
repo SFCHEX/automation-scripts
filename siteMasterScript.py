@@ -1,42 +1,47 @@
+import pyxlsb
+from openpyxl import load_workbook
 
-def updateSiteData(date_str, pivot_table_ava, pivot_table_pad, pivot_table_par, xlsb_file_path):
-    with pyxlsb.open_workbook(xlsb_file_path) as wb:
-        with pyxlsb.get_sheet(wb, sheet_name='AVA') as sheet_ava:
-            data_ava = []
-            for row in sheet_ava.rows():
-                data_ava.append([item.v for item in row])
+def updateSiteData(AVA, PAD, PAR, date, filename):
+    with pyxlsb.open_workbook(filename) as wb:
+        with wb.get_sheet(1) as sheet:
+            date_column_index = None
+            for i, row in enumerate(sheet.rows()):
+                if i == 1:
+                    for j, cell in enumerate(row):
+                        if cell.v == date:
+                            date_column_index = j
+                            break
+                    if date_column_index is not None:
+                        break
 
-        with pyxlsb.get_sheet(wb, sheet_name='PAD') as sheet_pad:
-            data_pad = []
-            for row in sheet_pad.rows():
-                data_pad.append([item.v for item in row])
+            if date_column_index is None:
+                print(f"Date '{date}' not found in the sheet.")
+                return
 
-        with pyxlsb.get_sheet(wb, sheet_name='PAR') as sheet_par:
-            data_par = []
-            for row in sheet_par.rows():
-                data_par.append([item.v for item in row])
+            site_id_column_index = None
+            for i, row in enumerate(sheet.rows()):
+                if i == 2:
+                    for j, cell in enumerate(row):
+                        if cell.v == "SITE ID":
+                            site_id_column_index = j
+                            break
+                    if site_id_column_index is not None:
+                        break
 
-    section_data_ava = pd.DataFrame(data_ava[2:], columns=data_ava[1])
-    section_data_pad = pd.DataFrame(data_pad[2:], columns=data_pad[1])
-    section_data_par = pd.DataFrame(data_par[2:], columns=data_par[1])
+            if site_id_column_index is None:
+                print("SITE ID subheader not found.")
+                return
 
-    # Ensure that the 'SITE ID' values in the pivot tables match the XLSB file
-    pivot_table_ava = pivot_table_ava[pivot_table_ava['SITE ID'].isin(section_data_ava['SITE ID'])]
-    pivot_table_pad = pivot_table_pad[pivot_table_pad['SITE ID'].isin(section_data_pad['SITE ID'])]
-    pivot_table_par = pivot_table_par[pivot_table_par['SITE ID'].isin(section_data_par['SITE ID'])]
+            for row in sheet.rows():
+                site_id = row[site_id_column_index].v
 
-    # Update the Data column for the specified date in each section
-    section_data_ava[date_str] = pivot_table_ava.set_index('SITE ID')['Data']
-    section_data_pad[date_str] = pivot_table_pad.set_index('SITE ID')['Data']
-    section_data_par[date_str] = pivot_table_par.set_index('SITE ID')['Data']
+                if site_id in AVA:
+                    sheet.cell(row=row[site_id_column_index].r, column=date_column_index, value=AVA[site_id])
 
-    # Save the updated data back to the XLSB file
-    with pyxlsb.open_workbook(xlsb_file_path, 'w') as wb:
-        with wb.get_sheet(sheet_name='AVA') as sheet_ava:
-            sheet_ava.writer.writerows([section_data_ava.columns] + section_data_ava.values.tolist())
+                if site_id in PAD:
+                    sheet.cell(row=row[site_id_column_index].r, column=date_column_index, value=PAD[site_id])
 
-        with wb.get_sheet(sheet_name='PAD') as sheet_pad:
-            sheet_pad.writer.writerows([section_data_pad.columns] + section_data_pad.values.tolist())
+                if site_id in PAR:
+                    sheet.cell(row=row[site_id_column_index].r, column=date_column_index, value=PAR[site_id])
 
-        with wb.get_sheet(sheet_name='PAR') as sheet_par:
-            sheet_par.writer.writerows([section_data_par.columns] + section_data_par.values.tolist())
+    wb.save(filename)
