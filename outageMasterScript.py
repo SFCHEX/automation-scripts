@@ -143,15 +143,14 @@ def apply_tcr_logic(row):
                     sla_status_words = sla_status.split()
                     if sla_status_words and sla_status_words[0].lower() != "planned":
                         row["SLA Status"] = "Planned " + " ".join(sla_status_words[1:])
-                        # Add a print statement here to describe the modification
-#                        print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
+                        print(f"Modified SLA Status in row {row.name}: '{row['SLA Status']}'")
     return row
 
 def remove_dependency_from_subcategory(row):
     comment = row["Comment"]
     sub_category = row["Reason Sub-Category"]
 
-    if isinstance(comment, str):
+    if isinstance(comment, str) and isinstance(sub_category, str):
         if not re.search(r'cas', comment, re.IGNORECASE):
             # Remove "Dependency" from the sub-category using regex
             row["Reason Sub-Category"] = re.sub(r'_?Dependency$', '', sub_category, flags=re.IGNORECASE)
@@ -210,6 +209,7 @@ def Generator(row):
 
         if row['Reason Sub-Category'] in ['Power_Generator','Power_Dependency_Generator','Others_Illegal_Intervention'] :
             rules=[
+            ["Planned",r"TCR|PLAN"],
             ["Stolen Fuel",r"STOLEN\sF|FUEL\sSTOLEN|F(?:\w*)\sSTOLEN"],
             ["Rental",r"REN"],
             ["Sharing",r"Shar"],
@@ -217,7 +217,7 @@ def Generator(row):
             ["Overhauling",r"OVERH|OH"],
             ["Fuel Problem",r"SHORT"],
             ["Warranty ",r"war"],
-            ["Tech Problem",r"RATOR|TCR|REN|SOLAR|ACCESS|OUTAGE|ATS|TNT|DG|GEN"]
+            ["Tech Problem",r"RATOR|REN|SOLAR|ACCESS|OUTAGE|ATS|TNT|DG|GEN"]
             ]
 
             for expression in rules:
@@ -228,27 +228,38 @@ def Generator(row):
             print(f"Modified Generator in row {row.name}: '{row['Generator']}'")
     return row
 
+def Office(row):
+    pass
+def Corp(row):
+    pass
+
 def Final(row):
     comment = row["Comment"]
+    siteName = row["Site Name"]
     if isinstance(comment, str):
-        rules=[
-        ["ARISH",r"ARISH"],
-        ["OTHERS",r"ILLEGAL|SABOTAGE|GUARD|UNKNOWN"],
-        ["DAMAGED/STOLEN",r"DAMAGED|STOLEN"],
-        ["PLANNED",r"PLANNED"],
-        ["ACCESS",r"ACES|ACCES|CONT"],
-        ["POWER",r"ATS|FULE|FEUL|FUEL|HYBRID|PHASE|(?:^|\s|.)EC|DG|RECT|HAYA|C\.?B|COMMERCIAL|COM|TRANS\S|TRANSFO|GENERATOR|SOLAR|SHARING|POWER|GEN|RATOR|OUTAGE"],
-        ["HIGH_TEMP",r"TEMP"],
+        rulesComment=[
+        ["Arish",r"ARISH"],
+        ["Others",r"ILLEGAL|SABOTAGE|GUARD|UNKNOWN"],
+        ["Damaged/Stolen",r"DAMAGED|STOLEN"],
+        ["Planned",r"TCR|PLANNED"],
+        ["Access",r"ACES|ACCES|CONT"],
+        ["Power",r"ATS|FULE|FEUL|FUEL|HYBRID|PHASE|(?:^|\s|.)EC|DG|RECT|HAYA|C\.?B|COMMERCIAL|COM|TRANS\S|TRANSFO|GENERATOR|SOLAR|SHARING|POWER|GEN|RATOR|OUTAGE"],
+        ["High_Temp",r"TEMP"],
         ["BSS/TX",r"ELR|RTN|PERF|FLAP|INTER|BSS|TX|LINK|CARD|FIBER|CABLE|SW|CONNECTION|HW|E1|SW"],
-        ["UNDER ROT",r"ROT(?:\s|$)|TD|TCR"]
+        ["Under ROT",r"ROT(?:\s|$)|TD|TCR"]
         ]
 
-        for expression in rules:
-            if re.search(expression[1], comment, re.IGNORECASE):
-                row["Final"]=expression[0]
-                break
+    rulesOffice=[["Arish",r"\WArish|\WNSN\W|\WARS\W"]]
+    for expression in rulesComment:
+        if re.search(expression[1], comment, re.IGNORECASE):
+            row["Final"]=expression[0]
+            break
+    for expression in rulesOffice:
+        if re.search(expression[1], siteName, re.IGNORECASE):
+            row["Final"]=expression[0]
+            break
 
-        print(f"Modified Generator in row {row.name}: '{row['Final']}'")
+    print(f"Modified Generator in row {row.name}: '{row['Final']}'")
     return row
 
 
@@ -263,7 +274,7 @@ def process_excel_files(input_files,input_files2 ,output_file):
         data["Site ID"] = data["SiteCode"]
         data["2G/3G"] = data["Tech"]
         data["Site Layer - Qism"] = data["Site Layer Qism"]
-        data["Hybrid Down Time"] = data["Down Time"]
+        data["Hybrid Down Time"] = data["Down Time"].apply(lambda x: float(x)/60)
          
 
         data = data[desired_header_order]
@@ -312,9 +323,8 @@ def process_excel_files(input_files,input_files2 ,output_file):
         data2["Fault Clearance Time"]=data2["CeaseTime"]
         data2["Alarm Occurance Time"]=data2["EventTime"]
         data2["Fault Occurance Time"]=data2["EventTime"]
-        data2["Hybrid Down Time"]=data2["Duration"]
+        data2["Hybrid Down Time"]=data2["Duration"].apply(lambda x: float(x)/60)
         data2["Comment"]=data2["RootCause"]
-
         data2 = data2[desired_header_order]
 
         combined_data_mt = pd.concat([combined_data_mt, data2])
@@ -323,7 +333,10 @@ def process_excel_files(input_files,input_files2 ,output_file):
 
     print(f"{combined_data.shape}{combined_data_mt.shape}")
     combined_data = pd.concat([combined_data, combined_data_mt])
-    combined_data["Date"]=combined_data["Date"].apply(lambda x: x.strftime("%m-%d-%Y"))
+    try:
+        combined_data["Date"]=combined_data["Date"].apply(lambda x: x.strftime("%m-%d-%Y"))
+    except:
+        pass
     combined_data=combined_data[desired_header_order]
 
     for key,header in original_headers.items():
