@@ -69,7 +69,7 @@ def updateSiteData(AVA,PAD,PAR,date,output):
     dictPAD=PAD.to_dict(orient='index')
     dictPAR=PAR.to_dict(orient='index')
     data=[dictAVA,dictPAD,dictPAR]
-    count=0
+    count=-1
 
     for row in sheet.iter_rows(min_row=2, max_row=2):
         print(count)
@@ -84,7 +84,12 @@ def updateSiteData(AVA,PAD,PAR,date,output):
                     cell2_value=cell2.value
                     if cell2_value in data[count]:
                         print("changing values")
-                        sheet[f'{cell.col_idx}{row_index}']=data[count][cell2_value]
+                        changedCell=sheet.cell(column=cell.col_idx, row=row_index)
+                        if count==0:
+                            func="AVA (%)"
+                        else:
+                            func="MTTR.1"
+                        changedCell.value=data[count][cell2_value][func]
                  
 
     
