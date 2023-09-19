@@ -8,6 +8,32 @@ from openpyxl import load_workbook
 avaSheetMasterName=""
 powerSheetMasterName=""
 
+# Define the vendor mapping
+vendor_mapping = {
+    "HUAWEI": "HUAWEI",
+    "NOKIA": "NOKIA",
+    "ZTE": "ZTE"
+}
+
+def findVendor(file_name):
+    for vendor, keyword in vendor_mapping.items():
+        if keyword.lower() in file_name.lower():
+            return vendor
+
+def mergePower(input_files,output_file):
+    merged_data = pd.DataFrame()
+    for input_file in input_files:
+        df = pd.read_excel(input_file)
+        vendor = find_vendor(input_file)
+        df["Vendor"] = vendor 
+        df["Date"] = datetime.now().date()  
+        df["MTTR.1"] =df['MTTR'].apply(lambda x:x.hour + x.minute /  60 + x.second /  3600)
+        merged_data = merged_data.append(df, ignore_index=True)
+
+    merged_data = merged_data[['Region', 'Site Name', 'Tier', 'Site Code',"ID","Alarm Name","Occurrence Time(NT)","Clearance Time(NT)","MTTR","Type","Date", 'MTTR.1',"Vendor"]]
+    merged_data.to_excel(output_file, index=False)
+    print(f"Data merged and saved to {output_file}")
+
 def loadSheets(avaSheetName,powerSheetName):
     avaSheet=pd.read_excel(avaSheetName,"All Network",header=1)
     powerSheet=pd.read_excel(powerSheetName,"Sheet1")
@@ -104,14 +130,15 @@ def updateSiteData(AVA,PAD,PAR,date,output):
 def main():
     parser = argparse.ArgumentParser(description="DataFornetAv")
     parser.add_argument("-a", "--avaSheetName", help="availability Update")
-    parser.add_argument("-p", "--powerSheetName", help="power update")
+    parser.add_argument("-p", "--powerSheetNames", nargs="+", help="power update")
     parser.add_argument("-o", "--outputSheetName", help="Update Sheet")
     args =parser.parse_args()
-
-    avaSheet,powerSheet=loadSheets(args.avaSheetName,args.powerSheetName)
+    mergedPowerSheetName="CombinedPowerCommercialSheet.xlsx"
+    mergePower(args.powerSheetNames,mergedPowerSheetName)  
+    avaSheet,powerSheet=loadSheets(args.avaSheetName,powerSheetName)
     print("Loaded Sheets")
-    #updateNetworkAva(args.avaSheetName)
-    #updatePowerAlarm(args.powerSheetName)
+    updateNetworkAva(args.avaSheetName)
+    updatePowerAlarm(args.powerSheetName)
     AVA=getAVA(avaSheet)
     print("received AVA")
     PAD,PAR=getPADPAR(powerSheet)
