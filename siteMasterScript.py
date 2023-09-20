@@ -7,6 +7,7 @@ from openpyxl import load_workbook
 
 avaSheetMasterName=""
 powerSheetMasterName=""
+outputSheetName=""
 
 # Define the vendor mapping
 vendor_mapping = {
@@ -131,7 +132,6 @@ def main():
     parser = argparse.ArgumentParser(description="DataFornetAv")
     parser.add_argument("-a", "--avaSheetName", help="availability Update")
     parser.add_argument("-p", "--powerSheetNames", nargs="+", help="power update")
-    parser.add_argument("-o", "--outputSheetName", help="Update Sheet")
     args =parser.parse_args()
     mergedPowerSheetName="CombinedPowerCommercialSheet.xlsx"
     mergePower(args.powerSheetNames,mergedPowerSheetName)  
@@ -144,7 +144,7 @@ def main():
     PAD,PAR=getPADPAR(powerSheet)
     print("received PADPAR")
     date = (datetime.now()-timedelta(days=1)).strftime("%Y-%m-%d 00:00:00")
-    updateSiteData(AVA,PAD,PAR,date,args.outputSheetName)
+    updateSiteData(AVA,PAD,PAR,date,outputSheetName)
     print("Updated Site Data")
 
 
