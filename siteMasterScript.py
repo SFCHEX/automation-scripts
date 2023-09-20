@@ -8,6 +8,7 @@ from openpyxl import load_workbook
 avaSheetMasterName="C:\\Users\\swx1283483\\Desktop\\tes\\Sep-Network Availability Dashboard-2023-18 (F).xlsx"
 powerSheetMasterName="C:\\Users\\swx1283483\\Desktop\\tes\\Sep_2023 Daily Commercial Power alarm Outside-18 (F).xlsx"
 outputSheetName="C:\\Users\\swx1283483\\Desktop\\tes\\Sep-Sites AVA,PAR &amp; PAD.xlsx"
+excludedSitesSheet="C:\\Users\\swx1283483\\Desktop\\tes\\Excluded List From Cells Breakdown.xlsx"
 
 
 # Define the vendor mapping
@@ -39,11 +40,29 @@ def mergePower(input_files,output_file):
     ALARM=AlarmSheet["Alarm Name"].tolist()
     merged_data["ALARM"]=merged_data["ALARM"].apply(lambda x:"Yes" if x in ALARM else "No")
 
+
+    
     merged_data.to_excel(output_file, index=False)
     print(f"Data merged and saved to {output_file}")
 
 def loadSheets(avaSheetName,powerSheetName):
-    avaSheet=pd.read_excel(avaSheetName,"All Network",header=1)
+    avaSheet=pd.read_excel(avaSheetName,"OC Cells AVA (All Tech)")
+
+    excludedSheet= pd.read_excel(excludedSitesSheet, sheet_name="Sheet1")
+    ZTEUpdateSheet= pd.read_excel(excludedSitesSheet, sheet_name="ZTE UPDATE")
+
+   
+    excluded=excludedSheet["SITE"].tolist()
+    ZTEUpdate=ZTEUpdateSheet["Site ID"].tolist()
+    
+    avaSheet=avaSheet[~avaSheet["SITE"].isin(excluded)]
+
+    avaSheetZTE=avaSheet[avaSheet["VENDOR"]=="Z"]
+    avaSheetREST=avaSheet[avaSheet["VENDOR"]!="Z"]
+    avaSheetZTE=avaSheetZTE[avaSheet["SITE"].isin(ZTEUpdate)]
+    avaSheet=pd.concat([avaSheetZTE,avaSheetREST])
+
+    avaSheet.to_excel(avaSheetName, sheet_name='OC Cells AVA (All Tech)', index=False)
     powerSheet=pd.read_excel(powerSheetName,"Sheet1")
     return avaSheet, powerSheet
 
