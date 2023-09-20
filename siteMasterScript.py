@@ -140,6 +140,7 @@ def main():
     parser = argparse.ArgumentParser(description="DataFornetAv")
     parser.add_argument("-a", "--avaSheetName", help="availability Update")
     parser.add_argument("-p", "--powerSheetNames", nargs="+", help="power update")
+    parser.add_argument("-t", "--time",help="time")
     args =parser.parse_args()
     mergedPowerSheetName="CombinedPowerCommercialSheet.xlsx"
     mergePower(args.powerSheetNames,mergedPowerSheetName)  
@@ -154,7 +155,10 @@ def main():
     print("received AVA")
     PAD,PAR=getPADPAR(powerSheet)
     print("received PADPAR")
-    date = (datetime.now()-timedelta(days=1)).strftime("%Y-%m-%d 00:00:00")
+    if args.time:
+        date=args.time
+    else:
+        date = (datetime.now()-timedelta(days=1)).strftime("%Y-%m-%d 00:00:00")
     updateSiteData(AVA,PAD,PAR,date,outputSheetName)
     print("Updated Site Data")
 
