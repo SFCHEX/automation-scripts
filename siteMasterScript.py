@@ -5,9 +5,10 @@ from datetime import datetime , timedelta
 from openpyxl import load_workbook
 
 
-avaSheetMasterName=""
-powerSheetMasterName=""
-outputSheetName=""
+avaSheetMasterName="C:\\Users\\swx1283483\\Desktop\\tes\\Sep-Network Availability Dashboard-2023-18 (F).xlsx"
+powerSheetMasterName="C:\\Users\\swx1283483\\Desktop\\tes\\Sep_2023 Daily Commercial Power alarm Outside-18 (F).xlsx"
+outputSheetName="C:\\Users\\swx1283483\\Desktop\\tes\\Sep-Sites AVA,PAR &amp; PAD.xlsx"
+
 
 # Define the vendor mapping
 vendor_mapping = {
@@ -25,13 +26,19 @@ def mergePower(input_files,output_file):
     merged_data = pd.DataFrame()
     for input_file in input_files:
         df = pd.read_excel(input_file)
-        vendor = find_vendor(input_file)
+        vendor = findVendor(input_file)
         df["Vendor"] = vendor 
         df["Date"] = datetime.now().date()  
         df["MTTR.1"] =df['MTTR'].apply(lambda x:x.hour + x.minute /  60 + x.second /  3600)
         merged_data = merged_data.append(df, ignore_index=True)
 
-    merged_data = merged_data[['Region', 'Site Name', 'Tier', 'Site Code',"ID","Alarm Name","Occurrence Time(NT)","Clearance Time(NT)","MTTR","Type","Date", 'MTTR.1',"Vendor"]]
+    merged_data["ALARM"]=merged_data["Alarm Name"]
+    merged_data = merged_data[['Region', 'Site Name', 'Tier', 'Site Code',"ID","Alarm Name","Occurrence Time(NT)","Clearance Time(NT)","MTTR","Type","Date", 'MTTR.1',"Vendor","ALARM"]]
+
+    AlarmSheet= pd.read_excel(powerSheetMasterName, sheet_name="Sheet2")
+    ALARM=AlarmSheet["Alarm Name"].tolist()
+    merged_data["ALARM"]=merged_data["ALARM"].apply(lambda x:"Yes" if x in ALARM else "No")
+
     merged_data.to_excel(output_file, index=False)
     print(f"Data merged and saved to {output_file}")
 
@@ -43,7 +50,8 @@ def loadSheets(avaSheetName,powerSheetName):
 def updateNetworkAva(avaSheetName):
     try:
         avaWBMaster=openpyxl.load_workbook(avaSheetMasterName)
-        avaSheetMaster=avaWBMaster['Sheet2']
+        sheetnum=2
+        avaSheetMaster=avaWBMaster[f'OC Cells AVA (All Tech)-{sheetnum}']
         avaWBSheet=openpyxl.load_workbook(avaSheetName)
         avaSheet=avaWBSheet['Sheet1']
         print("opened AVA master sheet")
@@ -135,10 +143,13 @@ def main():
     args =parser.parse_args()
     mergedPowerSheetName="CombinedPowerCommercialSheet.xlsx"
     mergePower(args.powerSheetNames,mergedPowerSheetName)  
-    avaSheet,powerSheet=loadSheets(args.avaSheetName,powerSheetName)
+    avaSheet,powerSheet=loadSheets(args.avaSheetName,mergedPowerSheetName)
+    
     print("Loaded Sheets")
-    updateNetworkAva(args.avaSheetName)
-    updatePowerAlarm(args.powerSheetName)
+#    updateNetworkAva(args.avaSheetName)
+#    print("Updated Sheet Network")
+#    updatePowerAlarm(mergedPowerSheetName)
+    print("Updated Sheet power")
     AVA=getAVA(avaSheet)
     print("received AVA")
     PAD,PAR=getPADPAR(powerSheet)
