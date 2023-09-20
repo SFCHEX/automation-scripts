@@ -62,7 +62,7 @@ def loadSheets(avaSheetName,powerSheetName):
     avaSheetZTE=avaSheetZTE[avaSheet["SITE"].isin(ZTEUpdate)]
     avaSheet=pd.concat([avaSheetZTE,avaSheetREST])
 
-    avaSheet.to_excel(avaSheetName, sheet_name='OC Cells AVA (All Tech)', index=False)
+    avaSheet.to_excel("CellBreakdownExcluded.xlsx", sheet_name='OC Cells AVA (All Tech)', index=False)
     powerSheet=pd.read_excel(powerSheetName,"Sheet1")
     return avaSheet, powerSheet
 
