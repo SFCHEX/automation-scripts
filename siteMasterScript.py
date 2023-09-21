@@ -31,14 +31,15 @@ def mergePower(input_files,output_file):
         df["Vendor"] = vendor 
         df["Date"] = datetime.now().date()  
         df["MTTR.1"] =df['MTTR'].apply(lambda x:x.hour + x.minute /  60 + x.second /  3600)
-        merged_data = merged_data.append(df, ignore_index=True)
+        merged_data =pd.concat([merged_data,df])
 
     merged_data["ALARM"]=merged_data["Alarm Name"]
     merged_data = merged_data[['Region', 'Site Name', 'Tier', 'Site Code',"ID","Alarm Name","Occurrence Time(NT)","Clearance Time(NT)","MTTR","Type","Date", 'MTTR.1',"Vendor","ALARM"]]
 
     AlarmSheet= pd.read_excel(powerSheetMasterName, sheet_name="Sheet2")
-    ALARM=AlarmSheet["Alarm Name"].tolist()
-    merged_data["ALARM"]=merged_data["ALARM"].apply(lambda x:"Yes" if x in ALARM else "No")
+    ALARM=[item.lower() for item in AlarmSheet["Alarm Name"].tolist()]
+    print(len(ALARM))
+    merged_data["ALARM"]=merged_data["ALARM"].apply(lambda x:"Yes" if x.lower() in ALARM else "No")
 
 
     
