@@ -38,7 +38,6 @@ def mergePower(input_files,output_file):
 
     AlarmSheet= pd.read_excel(powerSheetMasterName, sheet_name="Sheet2")
     ALARM=[item.lower() for item in AlarmSheet["Alarm Name"].tolist()]
-    print(len(ALARM))
     merged_data["ALARM"]=merged_data["ALARM"].apply(lambda x:"Yes" if x.lower() in ALARM else "No")
 
 
@@ -46,7 +45,7 @@ def mergePower(input_files,output_file):
     merged_data.to_excel(output_file, index=False)
     print(f"Data merged and saved to {output_file}")
 
-def loadSheets(avaSheetName,powerSheetName):
+def excludeAVA(avaSheetName, outputName):
     avaSheet=pd.read_excel(avaSheetName,"OC Cells AVA (All Tech)")
 
     excludedSheet= pd.read_excel(excludedSitesSheet, sheet_name="Sheet1")
@@ -63,7 +62,11 @@ def loadSheets(avaSheetName,powerSheetName):
     avaSheetZTE=avaSheetZTE[avaSheet["SITE"].isin(ZTEUpdate)]
     avaSheet=pd.concat([avaSheetZTE,avaSheetREST])
 
-    avaSheet.to_excel("CellBreakdownExcluded.xlsx", sheet_name='OC Cells AVA (All Tech)', index=False)
+    avaSheet.to_excel(outputName, sheet_name='OC Cells AVA (All Tech)', index=False)
+ 
+
+def loadSheets(avaSheetName,powerSheetName):
+    avaSheet=pd.read_excel(avaSheetName,"OC Cells AVA (All Tech)")
     powerSheet=pd.read_excel(powerSheetName,"Sheet1")
     return avaSheet, powerSheet
 
@@ -162,25 +165,37 @@ def main():
     parser.add_argument("-p", "--powerSheetNames", nargs="+", help="power update")
     parser.add_argument("-t", "--time",help="time")
     args =parser.parse_args()
-    mergedPowerSheetName="CombinedPowerCommercialSheet.xlsx"
-    mergePower(args.powerSheetNames,mergedPowerSheetName)  
-    avaSheet,powerSheet=loadSheets(args.avaSheetName,mergedPowerSheetName)
-    
-    print("Loaded Sheets")
-#    updateNetworkAva(args.avaSheetName)
-#    print("Updated Sheet Network")
-#    updatePowerAlarm(mergedPowerSheetName)
-    print("Updated Sheet power")
-    AVA=getAVA(avaSheet)
-    print("received AVA")
-    PAD,PAR=getPADPAR(powerSheet)
-    print("received PADPAR")
-    if args.time:
-        date=args.time
-    else:
-        date = (datetime.now()-timedelta(days=1)).strftime("%Y-%m-%d 00:00:00")
-    updateSiteData(AVA,PAD,PAR,date,outputSheetName)
-    print("Updated Site Data")
+
+    if args.avaSheetName and args.powerSheetNames:
+        mergedPowerSheetName="CombinedPowerCommercialSheet.xlsx"
+        mergePower(args.powerSheetNames,mergedPowerSheetName)  
+        outputExcludedName="CellBreakdownExcluded.xlsx"
+        excludeAVA(args.avaSheetName,outputExcludedName)
+        avaSheet,powerSheet=loadSheets(outputExcludedName,mergedPowerSheetName)
+        
+        print("Loaded Sheets")
+#       updateNetworkAva(args.avaSheetName)
+#       print("Updated Sheet Network")
+#       updatePowerAlarm(mergedPowerSheetName)
+        print("Updated Sheet power")
+        AVA=getAVA(avaSheet)
+        print("received AVA")
+        PAD,PAR=getPADPAR(powerSheet)
+        print("received PADPAR")
+        if args.time:
+            date=args.time
+        else:
+            date = (datetime.now()-timedelta(days=1)).strftime("%Y-%m-%d 00:00:00")
+        updateSiteData(AVA,PAD,PAR,date,outputSheetName)
+        print("Updated Site Data")
+
+    elif args.avaSheetName and not args.powerSheetNames:
+        excludeAVA(args.avaSheetName,"CellBreakdownExcluded.xlsx")
+        print("outputed CellBreakdownExcluded.xlsx")
+    elif not args.avaSheetName and args.powerSheetNames:
+        mergedPowerSheetName="CombinedPowerCommercialSheet.xlsx"
+        mergePower(args.powerSheetNames,mergedPowerSheetName)  
+ 
 
 
 
