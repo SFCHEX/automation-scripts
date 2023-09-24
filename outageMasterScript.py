@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 from fuzzywuzzy import fuzz
 import os
 
+officeName="D:\\Work\\Office(1).xlsx"
+corpName="D:\\Work\\Corpp.xlsx"
+
 custom_rules = {
     r"(HW|SW)": {
         "Reason Category": "BSS",
@@ -42,7 +45,7 @@ custom_rules = {
 
 
 
-desired_header_order = ["Date", "Region", "BSC", "Site Name", "Site ID", "2G/3G", "ID","Site Category","Priority","Technical Area","Site Layer - Qism","Type Of Sharing","Host/Guest","Alarm Occurance Time","Fault Occurance Time","Fault Clearance Time","MTTR","Hybrid Down Time","SLA Status","Site Type", "Reason Category","Reason Sub-Category","Comment", "Owner","Access Type","Cascaded To", "Final", "Office","Corp","Generator","Vendor","Reg", "Most Aff"]
+desired_header_order = ["Date", "Region", "BSC", "Site Name", "Site ID", "2G/3G", "ID","Site Category","Priority","Technical Area","Site Layer - Qism","Type Of Sharing","Host/Guest","Alarm Occurance Time","Fault Occurance Time","Fault Clearance Time","MTTR","Hybrid Down Time","SLA Status","Site Type", "Reason Category","Reason Sub-Category","Comment", "Owner","Access Type","Cascaded To", "Final", "Access Category", "Office","Corp","Generator","Vendor","Reg", "Most Aff"]
 
 
 
@@ -111,6 +114,7 @@ def apply_cascaded_to_rule(row):
 
                 print(f"Modified Cascaded To in row {row.name}: '{row['Cascaded To']}'")
     return row
+
 
 def apply_custom_rules(row, custom_rules):
     comment = row["Comment"]
@@ -215,9 +219,9 @@ def Generator(row):
             ["Sharing",r"Shar"],
             ["Spare Part",r"SP"],
             ["Overhauling",r"OVERH|OH"],
-            ["Fuel Problem",r"SHORT"],
+            ["Fuel Problem",r"SHORTAGE"],
             ["Warranty ",r"war"],
-            ["Tech Problem",r"RATOR|REN|SOLAR|ACCESS|OUTAGE|ATS|TNT|DG|GEN"]
+            ["Tech Problem",r"RATOR|REN|SOLAR|ACCESS|OUTAGE|ATS|TNT|PMDG|GEN|DGMAIN"]
             ]
 
             for expression in rules:
@@ -228,10 +232,6 @@ def Generator(row):
             print(f"Modified Generator in row {row.name}: '{row['Generator']}'")
     return row
 
-def Office(row):
-    pass
-def Corp(row):
-    pass
 
 def Final(row):
     comment = row["Comment"]
@@ -239,17 +239,17 @@ def Final(row):
     if isinstance(comment, str):
         rulesComment=[
         ["Arish",r"ARISH"],
-        ["Others",r"ILLEGAL|SABOTAGE|GUARD|UNKNOWN"],
-        ["Damaged/Stolen",r"DAMAGED|STOLEN"],
+        ["Others",r"UNKNOWN"],
+        ["Damaged/Stolen",r"DAMAGED|BURNT|INCIDENT"],
         ["Planned",r"TCR|PLANNED"],
-        ["Access",r"ACES|ACCES|CONT"],
-        ["Power",r"ATS|FULE|FEUL|FUEL|HYBRID|PHASE|(?:^|\s|.)EC|DG|RECT|HAYA|C\.?B|COMMERCIAL|COM|TRANS\S|TRANSFO|GENERATOR|SOLAR|SHARING|POWER|GEN|RATOR|OUTAGE"],
+        ["Power",r"SABOT|HCR|ODU|ATS|FULE|FEUL|FUEL|HYBRID|PHASE|(?:^|\s)EC|DG|RECT|HAYA|C\.?B|COMMERCIAL|COM|COMM|TRANS\S|TRANSFO|GENERATOR|SOLAR|POWER|GEN|RATOR|OUTAGE"],
+        ["Access",r"ACES|ACCES|CONT|SHARING|OWNER"],
         ["High_Temp",r"TEMP"],
-        ["BSS/TX",r"ELR|RTN|PERF|FLAP|INTER|BSS|TX|LINK|CARD|FIBER|CABLE|SW|CONNECTION|HW|E1|SW"],
+        ["BSS/TX",r"FTTS|ELR|RTN|PERF|FLAP|INTER|BSS|TX|LINK|CARD|FIBER|CABLE|SW|CONNECTION|HW|E1|SW"],
         ["Under ROT",r"ROT(?:\s|$)|TD|TCR"]
         ]
 
-    rulesOffice=[["Arish",r"\WArish|\WNSN\W|\WARS\W"]]
+    rulesOffice=[["Arish",r"(?:\W|_)\WArish|(?:\W|_)NSN(?:\W|_)|(?:\W|_)ARS(?:\W|_)"]]
     for expression in rulesComment:
         if re.search(expression[1], comment, re.IGNORECASE):
             row["Final"]=expression[0]
@@ -262,6 +262,36 @@ def Final(row):
     print(f"Modified Generator in row {row.name}: '{row['Final']}'")
     return row
 
+
+def Office(row,officeDict):
+    try:
+        row["Office"]= officeDict[row["Site ID"]]
+    except Exception as e:
+        print(e)
+    return row
+
+
+
+def Access_Category(row):
+    comment = row["Comment"]
+    final= row["Final"]
+    if isinstance(comment, str):
+        rulesComment=[
+        ["Access_Guard Others",r"Guard"],
+        ["Access_GD",r"GD|Railway|Police|(?:\s|^|\()TE(?:\s|$|\))"],
+        ["Access_Owner Fee",r"Cheque|Payment|Cheqe"],
+        ["End_Of_Contract",r"EOC"],
+        ["Access_Owner Others",r"ARMY|SHARING|Owner|H&S|Milit|Hotel|Factory|"],
+        ]
+
+
+    for expression in rulesComment:
+        if re.search(expression[1], comment, re.IGNORECASE) and final not in ["Power","BSS/TX"]:
+            row["Access Category"]=expression[0]
+            break
+
+    print(f"Modified Access Category in row {row.name}: '{row['Access Category']}'")
+    return row
 
 def process_excel_files(input_files,input_files2 ,output_file):
     combined_data = pd.DataFrame(columns=desired_header_order)  
@@ -351,6 +381,7 @@ def process_excel_files(input_files,input_files2 ,output_file):
     combined_data= combined_data.apply(Final, axis=1)
     combined_data= combined_data.apply(Generator, axis=1)
     combined_data= combined_data.apply(Reg, axis=1)
+    combined_data= combined_data.apply(Access_Category, axis=1)
 
     for key,header in original_headers.items():
         mcd=merge_categories(header,combined_data[key].unique().tolist())
@@ -362,6 +393,23 @@ def process_excel_files(input_files,input_files2 ,output_file):
 
 
     combined_data= combined_data.apply(MostAff, axis=1)
+
+
+
+
+
+    
+    corp=pd.read_excel(corpName)
+    corpList=corp["Facing Site"].tolist()
+    office=pd.read_excel(officeName)
+    officeDict= dict(zip(office["SiteCode"],office["Office"]))
+
+    combined_data= combined_data.apply(Office,officeDict=officeDict ,axis=1)
+    combined_data["Corp"]=combined_data["Site ID"].apply(lambda x: "Yes" if x in corpList else "No")
+
+
+
+
     combined_data.to_excel(output_file, index=False)
 
 def get_files_in_current_directory():
