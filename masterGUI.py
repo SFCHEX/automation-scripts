@@ -5,6 +5,9 @@ import threading
 
 script_names = ["outageMaster.py", "availabilityMaster.py", "powerMaster.py", "AVAPADPARMaster.py"]
 
+script_dir="C:\\Users\\swx1283483\\automation-scripts\\"
+
+
 def select_directory():
     directory_path = filedialog.askdirectory()
     directory_var.set(directory_path)
@@ -14,7 +17,7 @@ def run_script(script_name):
     if directory_path:
         try:
             def run_subprocess():
-                result = subprocess.run(["python", script_name], cwd=directory_path, text=True, capture_output=True)
+                result = subprocess.run(["python",script_dir+script_name], cwd=directory_path, text=True, capture_output=True)
                 print(result.stdout)
                 print(result.stderr)
                 root.after(0, update_output, result.stdout + result.stderr)
