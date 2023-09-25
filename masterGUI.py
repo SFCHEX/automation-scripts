@@ -26,6 +26,9 @@ def run_script(script_name):
 root = tk.Tk()
 root.title("Script Runner")
 
+# Disable resizing
+root.resizable(False, False)
+
 # Use a more modern theme
 style = ttk.Style()
 
