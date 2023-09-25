@@ -5,8 +5,7 @@ import threading
 
 script_names = ["outageMaster.py", "availabilityMaster.py", "powerMaster.py", "AVAPADPARMaster.py"]
 
-script_dir="C:\\Users\\swx1283483\\automation-scripts\\"
-
+script_dir = "C:\\Users\\swx1283483\\automation-scripts\\"
 
 def select_directory():
     directory_path = filedialog.askdirectory()
@@ -17,10 +16,14 @@ def run_script(script_name):
     if directory_path:
         try:
             def run_subprocess():
-                result = subprocess.run(["python",script_dir+script_name], cwd=directory_path, text=True, capture_output=True)
-                print(result.stdout)
-                print(result.stderr)
-                root.after(0, update_output, result.stdout + result.stderr)
+                process = subprocess.Popen(["python", script_dir + script_name], cwd=directory_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                while True:
+                    output = process.stdout.readline()
+                    if output == '' and process.poll() is not None:
+                        break
+                    if output:
+                        print(output.strip())  # Print to console
+                        output_queue.put(output)  # Put output into the queue for UI update
 
             threading.Thread(target=run_subprocess).start()
         except FileNotFoundError:
@@ -28,11 +31,16 @@ def run_script(script_name):
     else:
         print("Please select a directory first.")
 
-def update_output(output_text):
-    output_text_widget.config(state="normal")
-    output_text_widget.delete("1.0", tk.END)
-    output_text_widget.insert(tk.END, output_text)
-    output_text_widget.config(state="disabled")
+def update_output():
+    while True:
+        output = output_queue.get()
+        if output is None:
+            break
+        output_text_widget.config(state="normal")
+        output_text_widget.insert(tk.END, output)
+        output_text_widget.config(state="disabled")
+        output_text_widget.see(tk.END)  # Scroll to the end
+        root.update_idletasks()  # Update the UI
 
 root = tk.Tk()
 root.title("Script Runner")
@@ -71,5 +79,12 @@ directory_var = tk.StringVar()
 
 output_text_widget = tk.Text(output_frame, wrap=tk.WORD, state="disabled", font=("Helvetica", 12))
 output_text_widget.grid(row=0, column=0, sticky="nsew")
+
+output_queue = queue.Queue()  # Create a queue for output
+
+# Start the output update thread
+output_thread = threading.Thread(target=update_output)
+output_thread.daemon = True  # Allow the thread to exit when the main program exits
+output_thread.start()
 
 root.mainloop()
