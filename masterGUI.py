@@ -10,18 +10,26 @@ script_dir = "C:\\Users\\swx1283483\\automation-scripts\\"
 def select_directory():
     directory_path = filedialog.askdirectory()
     directory_var.set(directory_path)
-
+    
 def run_script(script_name):
     directory_path = directory_var.get()
     if directory_path:
         try:
             def run_subprocess():
                 process = subprocess.Popen(["python", script_dir + script_name], cwd=directory_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                
+                # Capture and print the output of the subprocess
+                for line in process.stdout:
+                    print(line, end='')
+                for line in process.stderr:
+                    print(line, end='')
+
             threading.Thread(target=run_subprocess).start()
         except FileNotFoundError:
             print(f"Script {script_name} not found.")
     else:
         print("Please select a directory first.")
+
 
 root = tk.Tk()
 root.title("Script Runner")
