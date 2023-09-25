@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 import subprocess
 
+script_names = ["a.py", "b.py", "c.py", "d.py", "e.py", "f.py", "g.py", "h.py"]
+
 def select_directory():
     directory_path = filedialog.askdirectory()
     directory_var.set(directory_path)
@@ -33,18 +35,20 @@ directory_label.grid(row=0, column=0, padx=10, pady=10)
 select_button = ttk.Button(root, text="Browse", command=select_directory)
 select_button.grid(row=0, column=1, padx=10, pady=10)
 
-buttons = [
-    ttk.Button(root, text=f"Run Script {chr(ord('A')+i)}", command=lambda i=i: run_script(f"{chr(ord('a')+i)}.py"))
-    for i in range(8)
-]
+row = 1
+col = 0
+for script_name in script_names:
+    button = ttk.Button(root, text=f"Run Script {script_name.upper()}", command=lambda s=script_name: run_script(s))
+    button.grid(row=row, column=col, padx=10, pady=10)
+    col += 1
+    if col > 1:
+        col = 0
+        row += 1
 
 directory_var = tk.StringVar()
 
-for i, button in enumerate(buttons):
-    button.grid(row=i//2+1, column=i%2, padx=10, pady=10)
-
 output_text = tk.Text(root, height=10, width=50, wrap=tk.WORD, font=("Courier New", 12), bg="black", fg="white")
-output_text.grid(row=5, columnspan=2, padx=10, pady=10)
+output_text.grid(row=row+1, columnspan=2, padx=10, pady=10)
 output_text.config(state="disabled")
 
 root.mainloop()
