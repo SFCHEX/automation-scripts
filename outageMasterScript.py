@@ -7,8 +7,8 @@ from datetime import datetime, timedelta
 from fuzzywuzzy import fuzz
 import os
 
-officeName="D:\\Work\\Office(1).xlsx"
-corpName="D:\\Work\\Corpp.xlsx"
+officeName="C:\\Users\\swx1283483\\automation-scripts\\Office(1).xlsx"
+corpName="C:\\Users\\swx1283483\\automation-scripts\\Corpp.xlsx"
 
 custom_rules = {
     r"(HW|SW)": {
