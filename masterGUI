@@ -1,0 +1,50 @@
+import tkinter as tk
+from tkinter import ttk, filedialog
+import subprocess
+
+def select_directory():
+    directory_path = filedialog.askdirectory()
+    directory_var.set(directory_path)
+
+def run_script(script_name):
+    directory_path = directory_var.get()
+    if directory_path:
+        try:
+            result = subprocess.run(["python", script_name], cwd=directory_path, text=True, capture_output=True)
+            output_text.config(state="normal")
+            output_text.delete("1.0", tk.END)
+            output_text.insert(tk.END, result.stdout)
+            output_text.insert(tk.END, result.stderr)
+            output_text.config(state="disabled")
+        except FileNotFoundError:
+            print(f"Script {script_name} not found.")
+    else:
+        print("Please select a directory first.")
+
+root = tk.Tk()
+root.title("Script Runner")
+
+style = ttk.Style()
+style.configure("TButton", padding=6, relief="flat", background="#007acc", foreground="white")
+style.configure("TLabel", padding=6)
+
+directory_label = ttk.Label(root, text="Select Directory:")
+directory_label.grid(row=0, column=0, padx=10, pady=10)
+select_button = ttk.Button(root, text="Browse", command=select_directory)
+select_button.grid(row=0, column=1, padx=10, pady=10)
+
+buttons = [
+    ttk.Button(root, text=f"Run Script {chr(ord('A')+i)}", command=lambda i=i: run_script(f"{chr(ord('a')+i)}.py"))
+    for i in range(8)
+]
+
+directory_var = tk.StringVar()
+
+for i, button in enumerate(buttons):
+    button.grid(row=i//2+1, column=i%2, padx=10, pady=10)
+
+output_text = tk.Text(root, height=10, width=50, wrap=tk.WORD, font=("Courier New", 12), bg="black", fg="white")
+output_text.grid(row=5, columnspan=2, padx=10, pady=10)
+output_text.config(state="disabled")
+
+root.mainloop()
