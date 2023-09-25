@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 import subprocess
 
-script_names = ["a.py", "b.py", "c.py", "d.py", "e.py", "f.py", "g.py", "h.py"]
+script_names = ["outageMaster.py", "availabilityMaster.py","powerMaster.py","AVAPADPARMaster.py"]
 
 def select_directory():
     directory_path = filedialog.askdirectory()
@@ -27,7 +27,7 @@ root = tk.Tk()
 root.title("Script Runner")
 
 style = ttk.Style()
-style.configure("TButton", padding=6, relief="flat", background="#007acc", foreground="white")
+style.configure("TButton", padding=6, relief="flat", background="#007acc", foreground="black")
 style.configure("TLabel", padding=6)
 
 directory_label = ttk.Label(root, text="Select Directory:")
