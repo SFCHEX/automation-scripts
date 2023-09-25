@@ -28,7 +28,6 @@ root.title("Script Runner")
 
 # Use a more modern theme
 style = ttk.Style()
-style.theme_use("clam")
 
 # Configure padding and font
 style.configure("TButton", padding=10, relief="flat", background="#007acc", foreground="black", font=("Helvetica", 12))
@@ -56,13 +55,5 @@ output_frame.columnconfigure(0, weight=1)
 output_frame.rowconfigure(0, weight=1)
 
 directory_var = tk.StringVar()
-
-output_text = tk.Text(output_frame, wrap=tk.WORD, font=("Courier New", 12), bg="black", fg="white")
-output_text.grid(row=0, column=0, sticky="nsew")
-
-# Add a scrollbar for the output text
-scrollbar = ttk.Scrollbar(output_frame, command=output_text.yview)
-scrollbar.grid(row=0, column=1, sticky="ns")
-output_text.config(yscrollcommand=scrollbar.set)
 
 root.mainloop()
