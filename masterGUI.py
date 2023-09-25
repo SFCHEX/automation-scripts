@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 import subprocess
 
-script_names = ["outageMaster.py", "availabilityMaster.py","powerMaster.py","AVAPADPARMaster.py"]
+script_names = ["outageMaster.py", "availabilityMaster.py", "powerMaster.py", "AVAPADPARMaster.py"]
 
 def select_directory():
     directory_path = filedialog.askdirectory()
@@ -26,9 +26,13 @@ def run_script(script_name):
 root = tk.Tk()
 root.title("Script Runner")
 
+# Use a more modern theme
 style = ttk.Style()
-style.configure("TButton", padding=6, relief="flat", background="#007acc", foreground="black")
-style.configure("TLabel", padding=6)
+style.theme_use("clam")
+
+# Configure padding and font
+style.configure("TButton", padding=10, relief="flat", background="#007acc", foreground="black", font=("Helvetica", 12))
+style.configure("TLabel", padding=6, font=("Helvetica", 12))
 
 directory_label = ttk.Label(root, text="Select Directory:")
 directory_label.grid(row=0, column=0, padx=10, pady=10)
@@ -39,16 +43,26 @@ row = 1
 col = 0
 for script_name in script_names:
     button = ttk.Button(root, text=f"Run Script {script_name.upper()}", command=lambda s=script_name: run_script(s))
-    button.grid(row=row, column=col, padx=10, pady=10)
+    button.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
     col += 1
     if col > 1:
         col = 0
         row += 1
 
+# Create a resizable frame for the output text
+output_frame = ttk.Frame(root)
+output_frame.grid(row=row + 1, columnspan=2, padx=10, pady=10, sticky="nsew")
+output_frame.columnconfigure(0, weight=1)
+output_frame.rowconfigure(0, weight=1)
+
 directory_var = tk.StringVar()
 
-output_text = tk.Text(root, height=10, width=50, wrap=tk.WORD, font=("Courier New", 12), bg="black", fg="white")
-output_text.grid(row=row+1, columnspan=2, padx=10, pady=10)
-output_text.config(state="disabled")
+output_text = tk.Text(output_frame, wrap=tk.WORD, font=("Courier New", 12), bg="black", fg="white")
+output_text.grid(row=0, column=0, sticky="nsew")
+
+# Add a scrollbar for the output text
+scrollbar = ttk.Scrollbar(output_frame, command=output_text.yview)
+scrollbar.grid(row=0, column=1, sticky="ns")
+output_text.config(yscrollcommand=scrollbar.set)
 
 root.mainloop()
