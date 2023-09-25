@@ -59,11 +59,10 @@ for script_name in script_names:
         col = 0
         row += 1
 
-# Create a resizable frame for the output text
 output_frame = ttk.Frame(root)
 output_frame.grid(row=row + 1, columnspan=2, padx=10, pady=10, sticky="nsew")
 output_frame.columnconfigure(0, weight=1)
-output_frame.rowconfigure(0, weight=1)
+output_frame.rowconfigure(0, weight=0)  # Set the weight to 0 to make it smaller
 
 directory_var = tk.StringVar()
 
