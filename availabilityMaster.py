@@ -58,6 +58,7 @@ def analysis(avaSheet):
     avgAVAPivot["Loss"]=100-avgAVAPivot["AVA (%)"]
     avgAVAPivot["Loss+avgAVA"]=avgAVAPivot["AVA (%)"]+avgAVAPivot["Loss"]
 
+    avaSheetAvgLoss=avgAVAPivot.loc["Total","Loss"]
     avgLoss=avgAVAPivot["Loss"].mean()
 
     avgAVA=avgAVAPivot["AVA (%)"].mean()
@@ -67,7 +68,7 @@ def analysis(avaSheet):
 
     avaLossSum=avaSheet["D-Loss"].sum()
 
-    avaSheet["D-Loss*W"]=avaSheet["D-Loss"].apply(lambda x: (x/avaLossSum) * avgLoss )
+    avaSheet["D-Loss*W"]=avaSheet["D-Loss"].apply(lambda x: (x/avaLossSum) * avaSheetAvgLoss )
     
     finalWeightPivot = pd.pivot_table(avaSheet, values=r'D-Loss*W', index='SITE',aggfunc={"D-Loss*W":['sum',"count"]})
     finalWeightPivot.reset_index(inplace=True)
