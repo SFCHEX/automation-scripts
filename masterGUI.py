@@ -10,7 +10,8 @@ script_dir = "C:\\Users\\swx1283483\\automation-scripts\\"
 def select_directory():
     directory_path = filedialog.askdirectory()
     directory_var.set(directory_path)
-    
+    root.title(directory_path)
+
 def run_script(script_name):
     directory_path = directory_var.get()
     if directory_path:
@@ -32,7 +33,6 @@ def run_script(script_name):
 
 
 root = tk.Tk()
-root.title(directory_var)
 
 # Disable resizing
 root.resizable(False, False)
@@ -41,19 +41,19 @@ root.resizable(False, False)
 style = ttk.Style()
 
 # Configure padding and font
-style.configure("TButton", padding=10, relief="flat", background="#007acc", foreground="black", font=("Helvetica", 12))
-style.configure("TLabel", padding=6, font=("Helvetica", 12))
+style.configure("TButton", padding=6, background="#007acc", foreground="black" )
+style.configure("TLabel", padding=4)
 
 directory_label = ttk.Label(root, text="Select Directory:")
-directory_label.grid(row=0, column=0, padx=10, pady=10)
+directory_label.grid(row=0, column=0, padx=6, pady=6)
 select_button = ttk.Button(root, text="Browse", command=select_directory)
-select_button.grid(row=0, column=1, padx=10, pady=10)
+select_button.grid(row=0, column=1, padx=6, pady=6)
 
 row = 1
 col = 0
 for script_name in script_names:
     button = ttk.Button(root, text=f"Run Script {script_name.upper()}", command=lambda s=script_name: run_script(s))
-    button.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
+    button.grid(row=row, column=col, padx=6, pady=6)
     col += 1
     if col > 1:
         col = 0
@@ -61,5 +61,6 @@ for script_name in script_names:
         
 directory_var = tk.StringVar()
 
+root.title("Please select a directory")
 
 root.mainloop()
