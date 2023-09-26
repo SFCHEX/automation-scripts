@@ -50,10 +50,16 @@ def excludeAVA(avaSheet):
 def analysis(avaSheet):
     
     avaSheet["D-Loss"]= 100-avaSheet["AVA (%)"]
+    avaSheetAvgAVA=avaSheet["AVA (%)"].mean()
+
     avgAVAPivot = pd.pivot_table(avaSheet, values=r'AVA (%)', index='REG',aggfunc='mean')
+    new_row=pd.Series({"AVA (%)":avaSheetAvgAVA},name="Total")
+    avgAVAPivot=avgAVAPivot.append(new_row,ignore_index=False)
     avgAVAPivot["Loss"]=100-avgAVAPivot["AVA (%)"]
     avgAVAPivot["Loss+avgAVA"]=avgAVAPivot["AVA (%)"]+avgAVAPivot["Loss"]
+
     avgLoss=avgAVAPivot["Loss"].mean()
+
     avgAVA=avgAVAPivot["AVA (%)"].mean()
     avg=avgAVAPivot["Loss+avgAVA"].mean()
     totalAVG=pd.DataFrame({"":["Total Average"],"AVA (%)" :[avgAVA], "Loss":[avgLoss],"Loss+avgAVA":[avg] })
