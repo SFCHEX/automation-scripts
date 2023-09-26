@@ -10,7 +10,7 @@ excludedSitesSheet="C:\\Users\\swx1283483\\Desktop\\tes\\Excluded List From Cell
 
 
 outputName="excludedAvailibilityOutsideCairo.xlsx"
-
+sheetName='OC Cells AVA (All Tech)'
 
 
 
@@ -31,28 +31,44 @@ def merge_files(input_files):
     return merged_data
 
 
-def excludeAVA(avaSheet ,outputName):
+def excludeAVA(avaSheet):
     headers=["DAYID","CELL","REG","SITE",'TECH',"VENDOR","DOWN_TIME","AVA (%)"]
-
     avaSheet=avaSheet[avaSheet["TECH"]!="4G"]
     avaSheet=avaSheet[headers]
     excludedSheet= pd.read_excel(excludedSitesSheet, sheet_name="Sheet1")
     ZTEUpdateSheet= pd.read_excel(excludedSitesSheet, sheet_name="ZTE UPDATE")
-
-   
     excluded=excludedSheet["SITE"].tolist()
     ZTEUpdate=ZTEUpdateSheet["Site ID"].tolist()
-    
     avaSheet=avaSheet[~avaSheet["SITE"].isin(excluded)]
-
     avaSheetZTE=avaSheet[avaSheet["VENDOR"]=="Z"]
     avaSheetREST=avaSheet[avaSheet["VENDOR"]!="Z"]
     avaSheetZTE=avaSheetZTE[avaSheet["SITE"].isin(ZTEUpdate)]
     avaSheet=pd.concat([avaSheetZTE,avaSheetREST])
+    return avaSheet
 
 
-    avaSheet.to_excel(outputName, sheet_name='OC Cells AVA (All Tech)', index=False)
- 
+def analysis(avaSheet):
+    
+    avaSheet["D-Loss"]= 100-avaSheet["AVA (%)"]
+    avgAVAPivot = pd.pivot_table(avaSheet, values=r'AVA (%)', index='REG',aggfunc='mean')
+    avgAVAPivot["Loss"]=100-avgAVAPivot["AVA (%)"]
+    avgAVAPivot["Loss+avgAVA"]=avgAVAPivot["AVA (%)"]+avgAVAPivot["Loss"]
+    avgLoss=avgAVAPivot["Loss"].mean()
+    avgAVA=avgAVAPivot["AVA (%)"].mean()
+    avg=avgAVAPivot["Loss+avgAVA"].mean()
+    totalAVG=pd.DataFrame({"":["Total Average"],"AVA (%)" :[avgAVA], "Loss":[avgLoss],"Loss+avgAVA":[avg] })
+#    avgAVAPivot=avgAVAPivot.append(new_row,ignore_index=True)
+
+    avaLossSum=avaSheet["D-Loss"].sum()
+
+    avaSheet["D-Loss*W"]=avaSheet["D-Loss"].apply(lambda x: (x/avaLossSum) * avgLoss )
+    
+    finalWeightPivot = pd.pivot_table(avaSheet, values=r'D-Loss*W', index='SITE',aggfunc={"D-Loss*W":['sum',"count"]})
+    finalWeightPivot.reset_index(inplace=True)
+    avgAVAPivot.reset_index(inplace=True)
+
+    return avaSheet,avgAVAPivot,finalWeightPivot,totalAVG
+
 def updateNetworkAva(avaSheetName):
     try:
         avaWBMaster=openpyxl.load_workbook(avaSheetMasterName)
@@ -68,18 +84,34 @@ def updateNetworkAva(avaSheetName):
     except Exception as e:
         print(e)
 
+def saveSheet(avaSheet,avgAVA,finalWeightPivot,totalAVG):
+    with pd.ExcelWriter(outputName,engine="xlsxwriter") as writer:
+        avaSheet.to_excel(writer,sheet_name=sheetName,index=False)
+        avgAVA.to_excel(writer,sheet_name="Analysis",index=False)
+        finalWeightPivot.to_excel(writer,sheet_name="Analysis",index=False,startcol=5)
+        totalAVG.to_excel(writer,sheet_name="Analysis",index=False,startrow=7)
+
+
 def main():
     parser = argparse.ArgumentParser(description="DataFornetAv")
     parser.add_argument("-a", "--avaSheetName", help="availability Update")
     args =parser.parse_args()
 
     if args.avaSheetName:
-        excludeAVA(args.avaSheetName,"CellBreakdownExcluded.xlsx")
+        print("Running AVAILABILITYMASTER")
+        avaSheet=excludeAVA(args.avaSheetName)
+        avaSheet,avgAVA,finalWeightPivot,totalAVG=analysis(avaSheet)
+        saveSheet(avaSheet,avgAVA,finalWeightPivot,totalAVG)
+
         print("outputed CellBreakdownExcluded.xlsx")
     else:
+        print("Running AVAILABILITYMASTER")
         input_files=get_files_in_current_directory()
         avaSheet=merge_files(input_files)
-        excludeAVA(avaSheet ,outputName)
+        avaSheet=excludeAVA(avaSheet)
+        avaSheet,avgAVA,finalWeightPivot,totalAVG=analysis(avaSheet)
+        saveSheet(avaSheet,avgAVA,finalWeightPivot,totalAVG)
+
         print("outputed CellBreakdownExcluded.xlsx")
 
  
