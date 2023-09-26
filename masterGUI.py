@@ -32,7 +32,7 @@ def run_script(script_name):
 
 
 root = tk.Tk()
-root.title("Script Runner")
+root.title(directory_var)
 
 # Disable resizing
 root.resizable(False, False)
