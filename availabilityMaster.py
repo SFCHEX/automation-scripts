@@ -59,11 +59,7 @@ def analysis(avaSheet):
     avgAVAPivot["Loss+avgAVA"]=avgAVAPivot["AVA (%)"]+avgAVAPivot["Loss"]
 
     avaSheetAvgLoss=avgAVAPivot.loc["Total","Loss"]
-    avgLoss=avgAVAPivot["Loss"].mean()
 
-    avgAVA=avgAVAPivot["AVA (%)"].mean()
-    avg=avgAVAPivot["Loss+avgAVA"].mean()
-    totalAVG=pd.DataFrame({"":["Total Average"],"AVA (%)" :[avgAVA], "Loss":[avgLoss],"Loss+avgAVA":[avg] })
 #    avgAVAPivot=avgAVAPivot.append(new_row,ignore_index=True)
 
     avaLossSum=avaSheet["D-Loss"].sum()
@@ -74,7 +70,7 @@ def analysis(avaSheet):
     finalWeightPivot.reset_index(inplace=True)
     avgAVAPivot.reset_index(inplace=True)
 
-    return avaSheet,avgAVAPivot,finalWeightPivot,totalAVG
+    return avaSheet,avgAVAPivot,finalWeightPivot
 
 def updateNetworkAva(avaSheetName):
     try:
@@ -91,12 +87,11 @@ def updateNetworkAva(avaSheetName):
     except Exception as e:
         print(e)
 
-def saveSheet(avaSheet,avgAVA,finalWeightPivot,totalAVG):
+def saveSheet(avaSheet,avgAVA,finalWeightPivot):
     with pd.ExcelWriter(outputName,engine="xlsxwriter") as writer:
         avaSheet.to_excel(writer,sheet_name=sheetName,index=False)
         avgAVA.to_excel(writer,sheet_name="Analysis",index=False)
         finalWeightPivot.to_excel(writer,sheet_name="Analysis",index=False,startcol=5)
-        totalAVG.to_excel(writer,sheet_name="Analysis",index=False,startrow=7)
 
 
 def main():
@@ -107,8 +102,8 @@ def main():
     if args.avaSheetName:
         print("Running AVAILABILITYMASTER")
         avaSheet=excludeAVA(args.avaSheetName)
-        avaSheet,avgAVA,finalWeightPivot,totalAVG=analysis(avaSheet)
-        saveSheet(avaSheet,avgAVA,finalWeightPivot,totalAVG)
+        avaSheet,avgAVA,finalWeightPivot=analysis(avaSheet)
+        saveSheet(avaSheet,avgAVA,finalWeightPivot)
 
         print("outputed CellBreakdownExcluded.xlsx")
     else:
@@ -116,8 +111,8 @@ def main():
         input_files=get_files_in_current_directory()
         avaSheet=merge_files(input_files)
         avaSheet=excludeAVA(avaSheet)
-        avaSheet,avgAVA,finalWeightPivot,totalAVG=analysis(avaSheet)
-        saveSheet(avaSheet,avgAVA,finalWeightPivot,totalAVG)
+        avaSheet,avgAVA,finalWeightPivot=analysis(avaSheet)
+        saveSheet(avaSheet,avgAVA,finalWeightPivot)
 
         print("outputed CellBreakdownExcluded.xlsx")
 
