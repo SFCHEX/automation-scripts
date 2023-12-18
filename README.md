@@ -15,13 +15,11 @@
 
 ## outageMasterScript.py README {#outagemasterscriptpy-readme}
 
-# Automated Outage Report Processing
-
-## Overview
+### Overview
 
 This script automates the processing of outage reports from multiple Excel files, applying various rules and modifications to standardize and enhance the data. The primary focus is on utilizing regular expressions (regex) and predefined rules to automate repetitive tasks, saving significant time in data processing.
 
-## Key Features
+### Key Features
 
 - **Regex and Custom Rules**: The script employs regular expressions and custom rules to categorize outage reasons, sub-categories, and owners based on predefined patterns.
 
@@ -35,17 +33,17 @@ This script automates the processing of outage reports from multiple Excel files
 
 - **Integration of Fuzzy Matching**: Fuzzy string matching is used to map new categories to existing ones, enhancing the accuracy of category assignments.
 
-## Usage
+### Usage
 
-### Input
+#### Input
 
 - **Excel Files**: The script takes one or more input Excel files containing outage report data. Separate inputs are accepted for different types of reports (e.g., 4G, 3G, non-specific).
 
-### Output
+#### Output
 
 - **Full Outage Report**: The processed data is consolidated and saved into a new Excel file, providing a comprehensive overview of outages.
 
-## Instructions
+### Instructions
 
 1. **Prepare Input Files**: Ensure that the input Excel files follow the required format and naming conventions.
 
@@ -61,14 +59,14 @@ This script automates the processing of outage reports from multiple Excel files
 
 5. **Customization (Optional)**: Modify the script's `custom_rules` and other sections to adapt it to specific requirements.
 
-## Dependencies
+### Dependencies
 
 - [openpyxl](https://openpyxl.readthedocs.io/en/stable/) for Excel file handling
 - [pandas](https://pandas.pydata.org/) for data manipulation
 - [argparse](https://docs.python.org/3/library/argparse.html) for command-line argument parsing
 - [fuzzywuzzy](https://github.com/seatgeek/fuzzywuzzy) for fuzzy string matching
 
-## Notes
+### Notes
 
 - The script supports both 4G/3G-specific and general outage reports. Ensure proper input file allocation.
 
@@ -83,11 +81,9 @@ Feel free to adapt and extend this script based on evolving needs and additional
 
 ## AVAPADPARMaster.py README {#avapadparmasterpy-readme}
 
-# Network and Power Data Integration
-
 This script performs the integration of network availability data and commercial power alarm data. It merges the data from multiple sources, updates master sheets, and generates a consolidated output.
 
-## Table of Contents
+### Table of Contents
 
 1. [Overview](#overview)
 2. [Usage](#usage)
@@ -97,7 +93,7 @@ This script performs the integration of network availability data and commercial
 3. [Dependencies](#dependencies)
 4. [Notes](#notes)
 
-## Overview {#overview}
+### Overview {#overview}
 
 The script integrates network availability data and commercial power alarm data. It includes the following functionalities:
 
@@ -118,9 +114,9 @@ The script integrates network availability data and commercial power alarm data.
   - Retrieves availability, power alarm duration (PAD), and power alarm count (PAR) data.
   - Updates a consolidated site data sheet with the latest values.
 
-## Usage {#usage}
+### Usage {#usage}
 
-### Integration Process {#integration-process}
+#### Integration Process {#integration-process}
 
 To perform the complete integration process (availability update, power update, and site data update):
 
@@ -132,7 +128,7 @@ python integration_script.py -a "path/to/availability/sheet.xlsx" -p "path/to/po
 - `-p` or `--powerSheetNames`: Paths to the power sheets for the update. Multiple paths can be provided.
 - `-t` or `--time`: Date for which the site data should be updated. If not provided, the script uses the date of the previous day.
 
-### Availability Update {#availability-update}
+#### Availability Update {#availability-update}
 
 To perform only the availability update:
 
@@ -140,7 +136,7 @@ To perform only the availability update:
 python integration_script.py -a "path/to/availability/sheet.xlsx"
 ```
 
-### Power Update {#power-update}
+#### Power Update {#power-update}
 
 To perform only the power update:
 
@@ -148,14 +144,14 @@ To perform only the power update:
 python integration_script.py -p "path/to/power/sheet1.xlsx" "path/to/power/sheet2.xlsx"
 ```
 
-## Dependencies {#dependencies}
+### Dependencies {#dependencies}
 
 - [pandas](https://pandas.pydata.org/) for data manipulation and analysis
 - [openpyxl](https://openpyxl.readthedocs.io/) for working with Excel files
 - [argparse](https://docs.python.org/3/library/argparse.html) for parsing command-line arguments
 - [datetime](https://docs.python.org/3/library/datetime.html) for working with dates and times
 
-## Notes {#notes}
+### Notes {#notes}
 
 - Ensure that Python is installed on your system.
 - The script assumes that the input files are Excel sheets (.xlsx).
@@ -170,11 +166,9 @@ python integration_script.py -p "path/to/power/sheet1.xlsx" "path/to/power/sheet
 
 ## availabilityMaster.py README {#availabilitymasterpy-readme}
 
-# Availability Master
-
 This script processes network availability data and updates a master sheet with the results. It excludes specified sites and performs analysis to determine the impact on the overall network availability.
 
-## Table of Contents
+### Table of Contents
 
 1. [Overview](#overview)
 2. [Usage](#usage)
@@ -188,35 +182,35 @@ This script processes network availability data and updates a master sheet with 
 5. [Dependencies](#dependencies)
 6. [Notes](#notes)
 
-## Overview {#overview}
+### Overview {#overview}
 
 The script reads availability data from input files, excluding specified sites, and performs an analysis to determine the impact on network availability. The final results are saved to an output Excel file.
 
-## Usage {#usage}
+### Usage {#usage}
 
-### Input {#input}
+#### Input {#input}
 
 - `-a`, `--avaSheetName`: Name of the availability update Excel file.
 
-### Output {#output}
+#### Output {#output}
 
 The processed availability data is saved to an output Excel file named `excludedAvailibilityOutsideCairo.xlsx`. The file contains multiple sheets, including the original availability data, analysis results, and a summary of the impact on each site.
 
-## Functionality {#functionality}
+### Functionality {#functionality}
 
-### Excluding Sites {#excluding-sites}
+#### Excluding Sites {#excluding-sites}
 
 The script reads the availability data and excludes specific sites listed in the "Excluded List From Cells Breakdown.xlsx" file. Additionally, it handles special cases for sites with the vendor code "Z."
 
-### Analysis {#analysis}
+#### Analysis {#analysis}
 
 The script performs an analysis to determine the impact of excluded sites on network availability. It calculates the average availability, average loss, and assigns weights to the sites based on their contribution to the total loss.
 
-### Updating Master Sheet {#updating-master-sheet}
+#### Updating Master Sheet {#updating-master-sheet}
 
 The script updates the master availability sheet ("Sep-Network Availability Dashboard-2023-18 (F).xlsx") with the processed availability data.
 
-## Instructions {#instructions}
+### Instructions {#instructions}
 
 To run the script, use the following command:
 
@@ -226,13 +220,13 @@ python availability_master.py -a <avaSheetName>
 
 Replace `<avaSheetName>` with the name of the availability update Excel file.
 
-## Dependencies {#dependencies}
+### Dependencies {#dependencies}
 
 - [pandas](https://pandas.pydata.org/) for data manipulation
 - [openpyxl](https://openpyxl.readthedocs.io/en/stable/) for Excel file handling
 - [argparse](https://docs.python.org/3/library/argparse.html) for command-line argument parsing
 
-## Notes {#notes}
+### Notes {#notes}
 
 - Ensure that the input availability update file is correctly specified.
 - The output file will be named `excludedAvailibilityOutsideCairo.xlsx`.
@@ -242,11 +236,9 @@ Replace `<avaSheetName>` with the name of the availability update Excel file.
 
 ## masterGUI.py README {#masterguipy-readme}
 
-# Automation Script Runner
-
 This script provides a graphical user interface (GUI) to easily run multiple automation scripts. It allows you to select a directory and execute various automation scripts related to outage, availability, power, and AVA/PADPAR processing.
 
-## Table of Contents
+### Table of Contents
 
 1. [Overview](#overview)
 2. [Usage](#usage)
@@ -255,7 +247,7 @@ This script provides a graphical user interface (GUI) to easily run multiple aut
 3. [Dependencies](#dependencies)
 4. [Notes](#notes)
 
-## Overview {#overview}
+### Overview {#overview}
 
 The script utilizes the Tkinter library to create a simple GUI that enables the user to select a directory and run multiple automation scripts. The available scripts include:
 
@@ -264,17 +256,17 @@ The script utilizes the Tkinter library to create a simple GUI that enables the 
 - Power Master (`powerMaster.py`)
 - AVA/PADPAR Master (`AVAPADPARMaster.py`)
 
-## Usage {#usage}
+### Usage {#usage}
 
-### Select Directory {#select-directory}
+#### Select Directory {#select-directory}
 
 Click the "Browse" button to select the directory where the automation scripts will be executed. The selected directory will be displayed at the top of the GUI.
 
-### Run Scripts {#run-scripts}
+#### Run Scripts {#run-scripts}
 
 For each script listed, there is a corresponding "Run Script" button. Click the appropriate button to execute the associated automation script. The script will run in the selected directory.
 
-## Dependencies {#dependencies}
+### Dependencies {#dependencies}
 
 - [tkinter](https://docs.python.org/3/library/tkinter.html) for creating the GUI
 - [subprocess](https://docs.python.org/3/library/subprocess.html) for running external commands
@@ -283,7 +275,7 @@ For each script listed, there is a corresponding "Run Script" button. Click the 
 - [os](https://docs.python.org/3/library/os.html) for interacting with the operating system
 - [subprocess](https://docs.python.org/3/library/subprocess.html) for running external commands
 
-## Notes {#notes}
+### Notes {#notes}
 
 - Ensure that Python is installed on your system.
 - The provided directory will be the working directory for script execution.
@@ -294,11 +286,9 @@ For each script listed, there is a corresponding "Run Script" button. Click the 
 
 ## powerMaster.py README {#powermasterpy-readme}
 
-# Power Sheet Merger
-
 This script is designed to merge data from multiple Power Sheets into a consolidated sheet. It extracts relevant information from each input file, adds vendor information, and appends the data to a master Power Sheet.
 
-## Table of Contents
+### Table of Contents
 
 1. [Overview](#overview)
 2. [Usage](#usage)
@@ -306,7 +296,7 @@ This script is designed to merge data from multiple Power Sheets into a consolid
 3. [Dependencies](#dependencies)
 4. [Notes](#notes)
 
-## Overview {#overview}
+### Overview {#overview}
 
 The script processes Power Sheets from different vendors (HUAWEI, NOKIA, ZTE) and consolidates the data into a master Power Sheet. It includes the following functionalities:
 
@@ -316,9 +306,9 @@ The script processes Power Sheets from different vendors (HUAWEI, NOKIA, ZTE) an
 - **Alarm Verification:** It checks whether the alarms in the merged data are present in the predefined list in the master Power Sheet and marks them accordingly.
 - **Output:** The merged data is saved to the output file (`combinedPowerSheet.xlsx`).
 
-## Usage {#usage}
+### Usage {#usage}
 
-### Merge Power Sheets {#merge-power-sheets}
+#### Merge Power Sheets {#merge-power-sheets}
 
 - To merge Power Sheets, run the script without any arguments.
   
@@ -332,7 +322,7 @@ The script processes Power Sheets from different vendors (HUAWEI, NOKIA, ZTE) an
   python powerMaster.py -p "path/to/new/PowerSheet.xlsx"
   ```
 
-## Dependencies {#dependencies}
+### Dependencies {#dependencies}
 
 - [pandas](https://pandas.pydata.org/) for data manipulation and analysis
 - [openpyxl](https://openpyxl.readthedocs.io/) for working with Excel files
@@ -340,7 +330,7 @@ The script processes Power Sheets from different vendors (HUAWEI, NOKIA, ZTE) an
 - [datetime](https://docs.python.org/3/library/datetime.html) for working with dates and times
 - [os](https://docs.python.org/3/library/os.html) for interacting with the operating system
 
-## Notes {#notes}
+### Notes {#notes}
 
 - Ensure that Python is installed on your system.
 - The script assumes that the input files are Power Sheets in Excel format (.xlsx).
@@ -351,8 +341,6 @@ The script processes Power Sheets from different vendors (HUAWEI, NOKIA, ZTE) an
 ---
 
 ## siteMasterScript.py README {#sitemasterscriptpy-readme}
-
-# Network and Power Data Integration
 
 This script performs the integration of network availability data and commercial power alarm data. It merges the data from multiple sources, updates master sheets, and generates a consolidated output.
 
@@ -366,7 +354,7 @@ This script performs the integration of network availability data and commercial
 3. [Dependencies](#dependencies)
 4. [Notes](#notes)
 
-## Overview {#overview}
+### Overview {#overview}
 
 The script integrates network availability data and commercial power alarm data. It includes the following functionalities:
 
@@ -387,7 +375,7 @@ The script integrates network availability data and commercial power alarm data.
   - Retrieves availability, power alarm duration (PAD), and power alarm count (PAR) data.
   - Updates a consolidated site data sheet with the latest values.
 
-## Usage {#usage}
+### Usage {#usage}
 
 ### Integration Process {#integration-process}
 
@@ -401,7 +389,7 @@ python integration_script.py -a "path/to/availability/sheet.xlsx" -p "path/to/po
 - `-p` or `--powerSheetNames`: Paths to the power sheets for the update. Multiple paths can be provided.
 - `-t` or `--time`: Date for which the site data should be updated. If not provided, the script uses the date of the previous day.
 
-### Availability Update {#availability-update}
+#### Availability Update {#availability-update}
 
 To perform only the availability update:
 
@@ -409,7 +397,7 @@ To perform only the availability update:
 python integration_script.py -a "path/to/availability/sheet.xlsx"
 ```
 
-### Power Update {#power-update}
+#### Power Update {#power-update}
 
 To perform only the power update:
 
@@ -417,14 +405,14 @@ To perform only the power update:
 python integration_script.py -p "path/to/power/sheet1.xlsx" "path/to/power/sheet2.xlsx"
 ```
 
-## Dependencies {#dependencies}
+### Dependencies {#dependencies}
 
 - [pandas](https://pandas.pydata.org/) for data manipulation and analysis
 - [openpyxl](https://openpyxl.readthedocs.io/) for working with Excel files
 - [argparse](https://docs.python.org/3/library/argparse.html) for parsing command-line arguments
 - [datetime](https://docs.python.org/3/library/datetime.html) for working with dates and times
 
-## Notes {#notes}
+### Notes {#notes}
 
 - Ensure that Python is installed on your system.
 - The script assumes that the input files are Excel sheets (.xlsx).
