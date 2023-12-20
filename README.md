@@ -13,7 +13,7 @@
 
 ---
 
-## outageMasterScript.py README (#outagemasterscriptpy-readme)
+## [outageMasterScript.py README] (#outagemasterscriptpy-readme)
 
 ### Overview
 
